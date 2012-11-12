@@ -10,8 +10,8 @@
 module I18n
   # Basic settings object for I18n quick setup.
   # @return [Init] settings object
-  def init
-    Init.instance
+  def init(&block)
+    Init.instance.config(&block)
   end
   module_function :init
 

@@ -12,16 +12,17 @@ class I18n::Init
   include Singleton
 
   DEFAULT_CONFIG_FILE         = 'locale.yml'
-  DEFAULT_LOCALE_RESCUE       = 'en'
+  DEFAULT_LOCALE_RESCUE       = :en
   DEFAULT_LOCALE_NAME_RESCUE  = 'English'
 
   attr_reader :rtl_languages
   attr_reader :available_locales
   attr_reader :available_languages
-  attr_writer :default_fallback_locale
+  attr_reader :default_locale
+  attr_reader :locale
 
-  attr_accessor :default_locale
   attr_accessor :default_locale_name
+  attr_writer :default_fallback_locale
 
   alias_method :default_locale_code,  :default_locale
   alias_method :default_locale_code=, :default_locale=
@@ -58,6 +59,14 @@ class I18n::Init
     @config_file = Pathname(name)
   end
 
+  def default_locale=(locale_name)
+    @default_locale = locale_name.to_sym
+  end
+
+  def locale=(locale_name)
+    @locale = locale_name.to_sym
+  end
+
   # Reads the default load path.
   # @return [Pathname] path
   def default_load_path
@@ -72,11 +81,10 @@ class I18n::Init
   end
   alias_method :load_path=, :default_load_path=
 
-  # Evaluates a block tapped to {I18n::Init} object.
+  # Evaluates a block tapped to {I18n::Init} if block is given.
   # return [Init] self
   def config(&block)
-    block_given? or return enum_for(__method__)
-    tap(&block)
+    block_given? ? tap(&block) : self
   end
 
   # Includes backend of a given name to simple backend.
@@ -156,6 +164,8 @@ class I18n::Init
         I18n.fallbacks[c] # pro-forma query
       end
     end
+
+    I18n.locale = locale if locale.present?
   end
   alias_method :commit!, :load!
 
@@ -177,6 +187,7 @@ class I18n::Init
       end
     end
   end
+  alias_method :enable_debug, :debug!
 
   # Guesses known framework name.
   # @return [Symbol] framework name
@@ -190,6 +201,7 @@ class I18n::Init
 
   # Resets buffers.
   def reset_buffers
+    @locale                   = nil
     @config_file              = nil
     @available_languages      = nil
     @available_locales        = nil

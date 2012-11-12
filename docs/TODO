@@ -1,0 +1,4 @@
+
+- add and remove language from available languages (?)
+- check if checking in available is ok when setting fallbacks
+- move debug! to I18n
