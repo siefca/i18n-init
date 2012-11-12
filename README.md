@@ -1,5 +1,5 @@
-I18n Init for Rails
-=======================
+I18n quick initialization
+=========================
 
 **i18n-init version `1.0`** (`Flow`)
 
@@ -14,32 +14,34 @@ Summary
 It's for relax and aesthetics.
 
 I18n Init allows you to quickly initialize locale settings in popular frameworks
-or your own program. No huge `locale.rb` initializer, no constants in the code,
-just create translations and use them.
+(Rails, Merb, Sinatra, Padrino) or in your own program. No messy `locale.rb`
+initializer, no constants in a code. Just create translations and use them.
 
 Why?
 ----
 
-To clean up and automate things like:
+To speed up and automate things like:
 
-* 
+* adding backends,
 * setting fallback rules,
 * loading translations files,
 * setting the default locale and the language name,
-* creating list of available languages and their locale codes,
-
+* getting the list of available languages and their locale codes.
 
 Usage
 -----
 
+TODO
+
+See also
+--------
 
 * See [whole documentation](http://rubydoc.info/gems/i18n-init/) to browse all documents.
 
 Requirements
 ------------
 
-* [activemodel](https://rubygems.org/gems/activemodel)
-* [rake](https://rubygems.org/gems/rake)
+* [i18n](https://rubygems.org/gems/i18n)
 * [rubygems](http://docs.rubygems.org/)
 * [bundler](http://gembundler.com/)
 
