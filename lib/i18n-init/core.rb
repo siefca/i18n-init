@@ -27,8 +27,6 @@ class I18n::Init
   alias_method :default_locale_code=, :default_locale=
   alias_method :default_language,     :default_locale_name
   alias_method :default_language=,    :default_locale_name=
-  alias_method :load_path,            :default_load_path
-  alias_method :load_path=,           :default_load_path=
 
   # Initializes instance and creates singleton methods that call
   # public instance methods of the same names.
@@ -65,12 +63,14 @@ class I18n::Init
   def default_load_path
     @default_load_path ||= guess_load_path
   end
+  alias_method :load_path, :default_load_path
 
   # Sets the default load path.
   # @return [Pathname] pathname
   def default_load_path=(name)
     @default_load_path = Pathname(name)
   end
+  alias_method :load_path=, :default_load_path=
 
   # Evaluates a block tapped to {I18n::Init} object.
   # return [Init] self
