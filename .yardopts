@@ -1,0 +1,12 @@
+--title 'I18n Settings for common frameworks'
+--protected
+--readme README.md
+--no-private
+--hide-void-return
+-p docs/yard-tpl
+-t default
+-
+docs/HISTORY
+ChangeLog
+docs/COPYING
+docs/LGPL-LICENSE

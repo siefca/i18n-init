@@ -1,0 +1,16 @@
+default: "en"
+available:
+  en: "English"
+  pl: "polski"
+fallbacks:
+  en-GB:
+    - :en
+  en-US:
+    - :en
+  en_shaw:
+    - :en
+    - :en-GB
+    - :en-US
+rtl:
+  - :ar
+  - :he
