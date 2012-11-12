@@ -16,7 +16,7 @@ module I18n
     class Railtie < ::Rails::Railtie
 
       config.after_initialize do
-        ::Rails.configuration.locale_init = I18n.init
+        ::Rails.configuration.i18n_init = I18n.init
       end
 
     end # class Railtie

@@ -42,8 +42,7 @@ Hoe.spec 'i18n-init' do
   self.readme_file     = 'README.md'
   self.history_file    = 'docs/HISTORY'
 
-  extra_deps          << ['railties',         '~> 3.0']     <<
-                         ['activemodel',      '~> 3.0']
+  extra_deps          << ['i18n', '>= 0.4.1']
 
   extra_dev_deps      << ['rspec',            '>= 2.6.0']   <<
                          ['yard',             '>= 0.8.2']   <<

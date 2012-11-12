@@ -1,0 +1,29 @@
+commit 9dc60376053d3b3361faf6d8fa851f559e1e0090
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 12 04:46:13 2012 +0100
+
+    Early aliases fixed
+
+commit 09e50b4152264f80c1dcf6b108973e8417dd4bba
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 12 04:45:58 2012 +0100
+
+    Generated initial manifest
+
+commit ab4ec8d2895133666a682c1ae95393a3c3870fe2
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 12 04:43:35 2012 +0100
+
+    README updated
+
+commit 8189b8210026e00967e7cea7f37308c3c3d47161
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 12 04:43:10 2012 +0100
+
+    Old files renamed
+
+commit ce0bf840a1ac52dfcdeedf41bdb2648a468c1d53
+Author: Paweł Wilk <siefca@gnu.org>
+Date:   Mon Nov 12 04:40:43 2012 +0100
+
+    Initial revision
