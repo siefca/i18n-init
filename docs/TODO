@@ -1,4 +1,6 @@
 
-- add and remove language from available languages (?)
-- check if checking in available is ok when setting fallbacks
-- move debug! to I18n
+- write some doco listing possible options and describing the mode gem runs in
+- add some sensible defaults in locale.yml
+- add generator
+- add some specs
+- release a gem

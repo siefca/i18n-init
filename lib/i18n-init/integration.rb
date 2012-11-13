@@ -20,4 +20,22 @@ module I18n
     Init.instance.load!
   end
   module_function :init!
+
+  # Enables debugging of I18n lookups.
+  def debug!
+    Init.instance.debug!
+  end
+  module_function :debug!
+
+  # Returns available languages hash.
+  # @return [Hash{String => String}] available language codes and their names.
+  def available_languages
+    Init.instance.available_languages
+  end
+  module_function :available_languages
+
+  def available_locales
+    Init.instance.available_locales
+  end
+  module_function :available_locales
 end

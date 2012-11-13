@@ -16,16 +16,14 @@ class I18n::Init
   DEFAULT_LOCALE_NAME_RESCUE  = 'English'
 
   attr_reader :rtl_languages
-  attr_reader :available_locales
   attr_reader :available_languages
   attr_reader :default_locale
   attr_reader :locale
 
   attr_accessor :default_locale_name
-  attr_writer :default_fallback_locale
+  attr_writer   :default_fallback_locale
 
   alias_method :default_locale_code,  :default_locale
-  alias_method :default_locale_code=, :default_locale=
   alias_method :default_language,     :default_locale_name
   alias_method :default_language=,    :default_locale_name=
 
@@ -35,6 +33,7 @@ class I18n::Init
   def initialize
     reset_buffers
     install_class_methods
+    install_setters
   end
 
   # Returns framework's root path.
@@ -55,15 +54,27 @@ class I18n::Init
     @config_file ||= guess_config_file
   end
 
+  # Sets config file path.
+  # @param name [String,Pathname] path
   def config_file=(name)
     @config_file = Pathname(name)
   end
 
-  def default_locale=(locale_name)
-    @default_locale = locale_name.to_sym
+  # Sets default locale.
+  # @note It will also set default locale name (language name) if it
+  #  will find it in available languages.
+  # @param locale_code [String,Symbol] locale
+  # @return [void]
+  def default_locale=(locale_code)
+    @default_locale = locale_code.to_sym
+    @default_locale_name = available_languages[@default_locale.to_s]
   end
+  alias_method :default_locale_code=, :default_locale=
 
-  def locale=(locale_name)
+  # Sets the initial locale that will be set on load.
+  # @param locale_code [String,Symbol] locale
+  # @return [Symbl] locale
+  def locale=(locale_code)
     @locale = locale_name.to_sym
   end
 
@@ -84,7 +95,9 @@ class I18n::Init
   # Evaluates a block tapped to {I18n::Init} if block is given.
   # return [Init] self
   def config(&block)
-    block_given? ? tap(&block) : self
+    block_given? or return self
+    block.arity == 0 or return tap(&block)
+    instance_eval(&block)
   end
 
   # Includes backend of a given name to simple backend.
@@ -110,10 +123,32 @@ class I18n::Init
     @default_fallback_locale ||= default_locale
   end
 
+  # Gets the array containing strings of available locale codes.
+  # @return [Array<String>] available locale codes
+  def available_locales
+    available_languages.keys.map { |l| l.to_s }
+  end
+
   # Gets language names as a hash ready to use by forms.
   # @return [Hash{Symbol,String}] locale codes and names
   def languages_for_forms
     @languages_for_forms ||= available_languages.map{ |name, code| [code, name] }.sort_by{ |c| c.first.downcase }
+  end
+
+  # Adds available language to available languages.
+  # @param locale_code [String,Symbol] locale code (e.g. +:pl+)
+  # @param language_name [String,Symbol] name of a language in its native language
+  # @return [String] added language name
+  def available_language(locale_code, language_name)
+    @available_languages[locale_code.to_s] = language_name.to_s
+  end
+  alias_method :add_available_language, :available_language
+
+  # Removes lanuage from available languags hash.
+  # @param locale_code [String,Symbol] locale code (e.g. +:pl+)
+  # @return [String] deleted language name
+  def delete_available_language(locale_code)
+    @available_languages.delete(locale_code.to_s)
   end
 
   # Loads locale configuration from YAML files.
@@ -136,18 +171,15 @@ class I18n::Init
         @default_locale_name ||= available.first[1].to_s.presence
         @default_locale_name ||= DEFAULT_LOCALE_NAME_RESCUE
       end
-      @available_languages  = available.presence || { default_locale.to_s => default_locale_name.to_s }
-      @available_locales    = available_languages.keys.map { |l| l.to_s }
-      @rtl_languages        = settings['rtl']
+      @available_languages.merge!(available.presence || { default_locale.to_s => default_locale_name.to_s })
+      @rtl_languages.concat(settings['rtl']).uniq! if settings['rtl'].present?
     else
       unless @default_locale.present?
         @default_locale      = DEFAULT_LOCALE_RESCUE
         @default_locale_name = DEFAULT_LOCALE_NAME_RESCUE
       end
       @default_locale_name.present? or @default_locale_name = DEFAULT_LOCALE_NAME_RESCUE
-      @available_languages  = { default_locale.to_s => default_locale_name.to_s }
-      @available_locales    = available_languages.keys.map { |l| l.to_s }
-      @rtl_languages        = []
+      @available_languages.merge!({ default_locale.to_s => default_locale_name.to_s })
     end
 
     I18n.default_locale = default_locale
@@ -165,22 +197,27 @@ class I18n::Init
       end
     end
 
-    I18n.locale = locale if locale.present?
+    I18n.locale = available_languages.key?(locale.to_s) ? locale : default_locale
   end
   alias_method :commit!, :load!
+
+  # Clears internal data.
+  def reset!
+    reset_buffers
+  end
 
   # Enables debugging of translation lookups.
   def debug!
     I18n::Backend::Simple.class_eval do
       def lookup(locale, key, scope = [], options = {})
         init_translations unless initialized?
-        keys = I18n.normalize_keys(locale, key, scope, options[:separator])
+        keys = I18n.normalizetr_keys(locale, key, scope, options[:separator])
         puts "I18N keys: #{keys}"
-        keys.inject(translations) do |result, _key|
-          _key = _key.to_sym
-          return nil unless result.is_a?(Hash) && result.key?(_key)
-          result = result[_key]
-          result = resolve(locale, _key, result, options.merge(:scope => nil)) if result.is_a?(Symbol)
+        keys.inject(translations) do |result, tr_key|
+          tr_key = tr_key.to_sym
+          return nil unless result.is_a?(Hash) && result.key?(tr_key)
+          result = result[tr_key]
+          result = resolve(locale, tr_key, result, options.merge(:scope => nil)) if result.is_a?(Symbol)
           puts "\t\t => " + result + "\n" if result.is_a?(String)
           result
         end
@@ -203,9 +240,8 @@ class I18n::Init
   def reset_buffers
     @locale                   = nil
     @config_file              = nil
-    @available_languages      = nil
-    @available_locales        = nil
-    @rtl_languages            = nil
+    @available_languages      = {}
+    @rtl_languages            = []
     @default_locale           = nil
     @default_locale_name      = nil
     @default_fallback_locale  = nil
@@ -225,6 +261,18 @@ class I18n::Init
         define_method(meth) do |*args, &block|
           instance.public_send(meth, *args, &block) 
         end
+      end
+    end
+  end
+
+  # Installs setting aliases for setters.
+  def install_setters
+    meths = public_methods(false).map(&:to_s).grep(/\=\z/)
+    self.class.class_eval do
+      meths.each do |writer|
+        setter = "set_#{writer.chop}"
+        next if method_defined?(setter)
+        alias_method(setter, writer)
       end
     end
   end
