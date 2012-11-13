@@ -45,10 +45,12 @@ module I18n
 
   # Returns +true+ if locale is included in available locales.
   # @return [Boolean] +true+ if available, +false+ otherwise
-  def available?(locale_code)
+  def locale_available?(locale_code)
     init.available_languages.key?(locale_code.to_s)
   end
-  module_function available?
+  alias_method :available_locale?, :locale_available?
+  module_function :locale_available?
+  module_function :available_locale?
 
   # Returns true if initialization has been done.
   # @return [Boolean] +true+ if initialized, +false+ otherwise

@@ -1,7 +1,6 @@
 
 - bundle example yml with package and use it when original file cannot be found
-- document behavior (jalnguages not available are also loaded - section: "conventions")
-
+- document behavior (languages marked as "not available" are also loaded - section: "conventions")
 
 - add generator
 - add some method that will leave (sieve) available languages leaving just the given (@available_sieve)
