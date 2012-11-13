@@ -14,24 +14,123 @@ Summary
 It's for relax and aesthetics.
 
 I18n Init allows you to quickly initialize locale settings in popular frameworks
-(Rails, Merb, Sinatra, Padrino) or in your own program. No messy `locale.rb`
-initializer, no constants in a code. Just create translations and use them.
+(Rails, Merb, Sinatra, Padrino) or in your own program. No big initializer,
+no constants in your code. Just create translations and common settings
+and initialize I18n.
 
 Why?
 ----
 
-To speed up and automate things like:
+To speed up and automate things.
 
-* adding backends,
-* setting fallback rules,
-* loading translations files,
-* setting the default locale and the language name,
-* getting the list of available languages and their locale codes.
+What?
+-----
+
+I18n Init is able to set up and provide the following information:
+
+* languages supported by application
+* languages with reversed writing order (right-to-left)
+* default locale
+* locale fallbacks
+* pathname of default directory containing translation files
+
+Conventions
+-----------
+
+To work properly I18n Init needs a configuration file (`locale.yml`) and an initialization method call.
+It will look for a configuration file in the standard location of your framework and in other locations
+(if the file cannot be found there).
+
+It is designed to nicely initialize things, not to change them at runtime. That's why there are two phases of work:
+
+* **configuration** (uses block passed to `I18n.init`)
+* **initialization** (invoked by `I18n.init`)
+  * loads settings from `locale.yml` or other configuration file (if exists)
+  * discovers available locales, default locale and fallbacks 
+  * loads translations using the default translations directory of your framework or the given directory
+  * configures fallbacks (if fallbacks are in use)
+
+If you really, really want to re-initialize things after everything was loaded and configured use `I18n.init.reset!`
 
 Usage
 -----
 
-TODO
+1. Create the **locale settings file** called `locale.yml` and place it in the configuration directory of your web
+application (`config` in Rails) or your program.
+
+2. Create initializer in your web application (`config/initializers/locale.rb` in Rails)
+or in your program and put **`I18n.init!`** call there.
+
+3. Optionally **create a configuration block** in the initializer above. Place it **before** `I18n.init!`.
+
+In case of Rails 3 or higher you can use the generator which is shipped with this gem.
+Just type **`rails g i18n-init`** to get the default files (initializer and configuration file).
+
+Configuration file
+==================
+
+The `locale.yml` configuration file contains basic I18n settings. This file may look like:
+
+```yaml
+default: "en"
+
+available:
+  de: "Deutsch"
+  en: "English"
+  pl: "polski"
+
+fallbacks:
+  en-shaw:
+    - :en
+    - :en-GB
+    - :en-US
+rtl:
+  - :ar
+  - :he
+  - :ur
+  - :ms
+```
+
+It has the following sections:
+
+* `available` – languages (with their names) that your application supports
+* `fallbacks` – fallbacks that are used when a translation is missing in primary language
+* `rtl` – right-to-left languages
+
+The `default` entry (present at the top of the example) should contain default locale code.
+When `I18n.init!` is called, it is used to initialize its `default_locale`.
+It will also be automatically added to all fallbacks as the last language.
+
+Configuration block
+===================
+
+Configuration block is a block containing important settings for those who need to customize I18n initialization process.
+Settings from configuration block will override corresponding settings from configuration file.
+
+The example block looks like:
+
+```ruby
+I18n.init do
+  default_locale_code :en
+  default_language    "English"
+  add_backend         :Fallbacks
+  add_backend         :Pluralization
+end
+```
+
+Here are the keywords you may use to set things up:
+
+* `root_path` – framework root path (if not set then guessed automatically)
+* `config_file` – configuration file path, including file name (if not set then `locale.yml` is searched in known locations)
+* `default_locale` (`default_locale_code`) – code of the default locale
+* `default_language` (`default_locale_name`) – name of the default language (preferably in its own language)
+* `a`
+
+Example
+=======
+
+
+
 
 See also
 --------
