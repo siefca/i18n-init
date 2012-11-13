@@ -11,31 +11,32 @@ module I18n
   # Basic settings object for I18n quick setup.
   # @return [Init] settings object
   def init(&block)
-    Init.instance.config(&block)
+    block_given? ? Init.instance.config(&block) : Init.instance  
   end
   module_function :init
 
   # Initializes I18n with prepared settings.
   def init!
-    Init.instance.load!
+    init.load!
   end
   module_function :init!
 
   # Enables debugging of I18n lookups.
   def debug!
-    Init.instance.debug!
+    init.debug!
   end
   module_function :debug!
 
   # Returns available languages hash.
   # @return [Hash{String => String}] available language codes and their names.
   def available_languages
-    Init.instance.available_languages
+    init.available_languages
   end
   module_function :available_languages
 
   def available_locales
-    Init.instance.available_locales
+    init.available_locales
   end
   module_function :available_locales
+ 
 end
