@@ -43,8 +43,9 @@ It will look for a configuration file in the standard location of your framework
 
 It is designed to nicely initialize things, not to change them at runtime. That's why there are two phases of work:
 
-* **configuration** (uses block passed to `I18n.init`)
-* **initialization** (invoked by `I18n.init`)
+1. **configuration** (uses block passed to `I18n.init`)
+ 
+2. **initialization** (invoked by `I18n.init!`)
   * loads settings from `locale.yml` or other configuration file (if exists)
   * discovers available locales, default locale and fallbacks 
   * loads translations using the default translations directory of your framework or the given directory
@@ -63,11 +64,10 @@ or in your program and put **`I18n.init!`** call there.
 
 3. Optionally **create a configuration block** in the initializer above. Place it **before** `I18n.init!`.
 
-In case of Rails 3 or higher you can use the generator which is shipped with this gem.
+In case of Rails 3 or higher you can use a generator which is shipped with this gem.
 Just type **`rails g i18n-init`** to get the default files (initializer and configuration file).
 
-Configuration file
-==================
+### Configuration file ###
 
 The `locale.yml` configuration file contains basic I18n settings. This file may look like:
 
@@ -101,34 +101,46 @@ The `default` entry (present at the top of the example) should contain default l
 When `I18n.init!` is called, it is used to initialize its `default_locale`.
 It will also be automatically added to all fallbacks as the last language.
 
-Configuration block
-===================
+### Configuration block ###
 
 Configuration block is a block containing important settings for those who need to customize I18n initialization process.
-Settings from configuration block will override corresponding settings from configuration file.
+Some settings from configuration block will **override** corresponding settings from configuration file (e.g. default locale
+and language name).
 
 The example block looks like:
 
 ```ruby
 I18n.init do
-  default_locale_code :en
-  default_language    "English"
-  add_backend         :Fallbacks
-  add_backend         :Pluralization
+  default_locale   :en => "English"
+  available_locale :fr => "French"
+  backend :Fallbacks
+  backend :Pluralization
 end
+
+I18n.init!
 ```
 
-Here are the keywords you may use to set things up:
+Below are the keywords you may use to set things up.
 
-* `root_path` – framework root path (if not set then guessed automatically)
+#### Files and directories ####
+
 * `config_file` – configuration file path, including file name (if not set then `locale.yml` is searched in known locations)
-* `default_locale` (`default_locale_code`) – code of the default locale
+* `default_load_path` – directory from which translation files are loaded (if not set then guessed); may contain globbing symbols
+* `root_path` – framework root path (if not set then guessed automatically)
+
+#### Backends ####
+
+* `backend` (`new_backend`) – tells I18n Init to use some backend (symbol or module)
+
+#### Locale codes and languages ####
+
+* `available_locale` – adds locale to available locales
+* `default_locale` (`default_locale_code`) – code of the default locale (if hash then also assigns its language name)
 * `default_language` (`default_locale_name`) – name of the default language (preferably in its own language)
-* `a`
+* `default_fallback_locale` – sets the default locale used as a last part of fallbacks 
+* `locale` – locale code to be set application-wide after initializing (must be in available locales)
 
-Example
-=======
-
+### Querying ###
 
 
 
