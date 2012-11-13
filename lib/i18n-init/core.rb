@@ -17,13 +17,10 @@ class I18n::Init
 
   attr_reader :rtl_languages
   attr_reader :available_languages
-  attr_reader :default_locale
-  attr_reader :locale
 
   attr_accessor :default_locale_name
   attr_writer   :default_fallback_locale
 
-  alias_method :default_locale_code,  :default_locale
   alias_method :default_language,     :default_locale_name
   alias_method :default_language=,    :default_locale_name=
 
@@ -48,38 +45,47 @@ class I18n::Init
     @root_path = Pathname(name)
   end
 
-  # Returns config file path.
+  # Returns the config file path.
   # @return [String] path
   def config_file
     @config_file ||= guess_config_file
   end
 
-  # Sets config file path.
+  # Sets the config file path.
   # @param name [String,Pathname] path
   def config_file=(name)
     @config_file = Pathname(name)
   end
 
-  # Sets default locale.
+  # Sets the default locale.
   # @note It will also set default locale name (language name) if it
   #  will find it in available languages and it hasn't been set already.
   # @param locale_code [String,Symbol] locale
   # @return [void]
   def default_locale=(locale_code)
-    @default_locale = locale_code.to_sym
-    @default_locale_name ||= available_languages[@default_locale.to_s]
+    if locale_code.is_a?(Hash)
+      locale_code.each_pair do |k, v|
+        self.default_locale = k
+        self.default_language = v
+      end
+    else
+      @default_locale = locale_code.to_sym
+      @default_locale_name ||= available_languages[@default_locale.to_s].presence
+      @default_locale_name ||= locale_code.to_s.presence
+    end
   end
   alias_method :default_locale_code=, :default_locale=
 
-  # Sets default locale and language name.
-  # @note It will also set default locale name (language name) if it
-  #  will find it in available languages.
-  # @param locale_code [String,Symbol] locale
-  # @return [void]
-  def default_locale_with_name=(locale_code)
-    @default_locale = locale_code.to_sym
-    @default_locale_name = available_languages[@default_locale.to_s]
+  # Reads or sets the default locale.
+  def default_locale(locale_code = nil, language_name = nil)
+    return @default_locale if locale_code.nil?
+    if language_name.nil?
+      self.default_locale = locale_code
+    else
+      self.default_locale = { locale_code => language_name }
+    end
   end
+  alias_method :default_locale_code,  :default_locale
 
   # Sets the initial locale that will be set on load.
   # @param locale_code [String,Symbol] locale
@@ -87,6 +93,25 @@ class I18n::Init
   def locale=(locale_code)
     @locale = locale_name.to_sym
   end
+
+  def locale
+    @locale
+  end
+
+  # fixme: override
+  # Adds available language to available languages.
+  # @param locale_code [String,Symbol] locale code (e.g. +:pl+)
+  # @param language_name [String,Symbol] name of a language in its native language
+  # @return [String,Hash] added language name or a hash of added languages
+  def available_locale(locale_code = nil, language_name = nil)
+    locale_code.nil? and return @locale
+    if language_name.nil?
+      locale_code.each_pair { |k, v| add_language(k, v) }
+    else
+      @available_languages[locale_code.to_s] = language_name.to_s
+    end
+  end
+  alias_method :available_language, :available_locale
 
   # Reads the default load path.
   # @return [Pathname] path
@@ -112,7 +137,7 @@ class I18n::Init
 
   # Includes backend of a given name to simple backend.
   # @param name [String, Symbol, Module] name of a backend from +I18n::Backend+ or backend module object.
-  # @return [void]
+  # @return [nil]
   def add_backend(b_name)
     if b_name.is_a?(Module)
       name_f = b_name.name.split(':').last.downcase
@@ -123,6 +148,7 @@ class I18n::Init
     end
     require "i18n/backend/#{name_f}" rescue nil
     I18n::Backend::Simple.send(:include, b_name)
+    nil
   end
   alias_method :add_backend=, :add_backend
   alias_method :new_backend=, :add_backend
@@ -145,23 +171,18 @@ class I18n::Init
     @languages_for_forms ||= available_languages.map{ |name, code| [code, name] }.sort_by{ |c| c.first.downcase }
   end
 
-  # Adds available language to available languages.
-  # @param locale_code [String,Symbol] locale code (e.g. +:pl+)
-  # @param language_name [String,Symbol] name of a language in its native language
-  # @return [String] added language name
-  def available_language(locale_code, language_name)
-    @available_languages[locale_code.to_s] = language_name.to_s
-  end
-  alias_method :add_available_language, :available_language
-
   # Removes lanuage from available languags hash.
   # @param locale_code [String,Symbol] locale code (e.g. +:pl+)
   # @return [String] deleted language name
-  def delete_available_language(locale_code)
+  def delete_language(locale_code)
     @available_languages.delete(locale_code.to_s)
   end
+  alias_method :delete_locale,  :delete_language
+  alias_method :del_language,   :delete_language
+  alias_method :del_locale,     :delete_language
 
   # Loads locale configuration from YAML files.
+  # @return [nil]
   def load!(cfile = nil)
     self.config_file = cfile if cfile.present?
     if File.exists?(config_file)
@@ -208,15 +229,25 @@ class I18n::Init
     end
 
     I18n.locale = available_languages.key?(locale.to_s) ? locale : default_locale
+    @initialized = true
+    nil
   end
   alias_method :commit!, :load!
 
+  # Returns true if initialization has been done.
+  # @return [Boolean] +true+ if initialized, +false+ otherwise
+  def initialized?
+    @initialized
+  end
+
   # Clears internal data.
+  # @return [nil]
   def reset!
     reset_buffers
   end
 
   # Enables debugging of translation lookups.
+  # @return [nil]
   def debug!
     I18n::Backend::Simple.class_eval do
       def lookup(locale, key, scope = [], options = {})
@@ -233,6 +264,7 @@ class I18n::Init
         end
       end
     end
+    nil
   end
   alias_method :enable_debug, :debug!
 
@@ -249,7 +281,6 @@ class I18n::Init
   # Resets buffers.
   def reset_buffers
     @locale                   = nil
-    @config_file              = nil
     @available_languages      = {}
     @rtl_languages            = []
     @default_locale           = nil
@@ -260,6 +291,8 @@ class I18n::Init
     @config_file              = nil
     @root_path                = nil
     @framework                = nil
+    @initialized              = false
+    nil
   end
 
   # Creates instance method wrappers in a singleton class.
@@ -273,6 +306,7 @@ class I18n::Init
         end
       end
     end
+    nil
   end
 
   # Installs setting aliases for setters.
@@ -297,6 +331,7 @@ class I18n::Init
         end
       end
     end
+    nil
   end
 
   # Guesses root path.
@@ -353,6 +388,7 @@ class I18n::Init
         return r if File.exists?(r)
       end
     end
+    # Search known locations
     [ ['app', 'conf'],  ['app', 'config'],
       ['dist', 'conf'], ['dist', 'config'],
       ['config'], ['conf'], ['app'], ['.']
@@ -360,6 +396,10 @@ class I18n::Init
       r = root_path.join(*dirs, fname)
       return r if File.exists?(r)
     end
+    # Return bundled settings
+    r = Pathname(__FILE__).dirname.join('..', 'example_settings', fname)
+    return r if File.exists?(r)
+    # Return root path + config file
     root_path.join(fname)
   end
 
@@ -391,10 +431,7 @@ class I18n::Init
         return root_path.join('app', 'i18n', *globber)
       end
     end
-    # Try config directory
-    r = config_file.dirname
     # Try other known locations
-    return r.join(*globber) if File.directory?(r) 
     [ ['config', 'locales'],  ['config', 'locale'],
       ['app', 'locale'],      ['app', 'locales'],
       ['app', 'i18n'],        ['app', 'l10n'],
@@ -407,6 +444,11 @@ class I18n::Init
     ].each do |dirs|
       r = root_path.join(*dirs)
       return r.join(*globber) if File.directory?(r)
+    end
+    # Try config directory
+    r = config_file.dirname
+    if File.directory?(r) && r != 'example_settings'
+      return r.join(*globber)
     end
     # Default to current directory an YML files
     root_path.join('*.yml')
