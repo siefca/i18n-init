@@ -16,12 +16,14 @@ module I18n
   module_function :init
 
   # Initializes I18n with prepared settings.
+  # @return [nil]
   def init!
     init.load!
   end
   module_function :init!
 
   # Enables debugging of I18n lookups.
+  # @return [nil]
   def debug!
     init.debug!
   end
@@ -34,9 +36,24 @@ module I18n
   end
   module_function :available_languages
 
+  # Returns available locales array.
+  # @return [Array<String>] locale codes
   def available_locales
     init.available_locales
   end
   module_function :available_locales
+
+  # Returns +true+ if locale is included in available locales.
+  # @return [Boolean] +true+ if available, +false+ otherwise
+  def available?(locale_code)
+    init.available_languages.key?(locale_code.to_s)
+  end
+  module_function available?
+
+  # Returns true if initialization has been done.
+  # @return [Boolean] +true+ if initialized, +false+ otherwise
+  def initialized?
+    init.initialized?
+  end
  
 end
