@@ -12,7 +12,9 @@ docs/LGPL-LICENSE
 docs/TODO
 docs/rdoc.css
 docs/yard-tpl/default/fulldoc/html/css/common.css
+i18n-init.gemspec
 init.rb
+lib/example_settings/locale.yml
 lib/i18n-init.rb
 lib/i18n-init/core.rb
 lib/i18n-init/integration.rb
