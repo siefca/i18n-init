@@ -1,0 +1,103 @@
+default: "en"
+
+available:
+  ar: "العربية"
+  bg: "български език"
+  br: "Brezhoneg"
+  ca: "Català"
+  cs: "Čeština"
+  cy: "Cymraeg"
+  da: "Dansk"
+  de: "Deutsch"
+  el: "Ελληνικά"
+  en: "English"
+  en_1337: "3n6l15h (English 1337)"
+  en_pirate: "English (Pirate)"
+  en_shaw: "ѦљѤѦі"
+  eo: "Esperanto"
+  es: "Castellano"
+  es-AR: "Castellano - Argentina"
+  es-CL: "Castellano - Chile"
+  es-MX: "Español, México"
+  eu: "Euskara"
+  fi: "Suomi"
+  fil: "Filipino"
+  fr: "Français"
+  ga: "Gaeilge"
+  gl: "Galego"
+  he: "עברית"
+  hu: "magyar nyelv"
+  id: "Bahasa Indonesia"
+  is: "íslenska"
+  it: "Italiano"
+  ja: "日本語"
+  ka: "ქართული"
+  ko: "한국어"
+  lt: "Lietuviškai"
+  mk: "македонски"
+  ml: "മലയാളം"
+  ms: "بهاس ملايو‎"
+  nb: "Norske"
+  nl: "Nederlands"
+  nn: "Nynorsk"
+  pa: "ਪੰਜਾਬੀ"
+  pl: "polski"
+  pt-BR: "Português"
+  ro: "Română"
+  ru: "Русский"
+  sk: "Slovenčina"
+  sl: "Slovenščina"
+  sq: "gjuha shqipe"
+  sv: "Svenska"
+  te: "తెలుగు"
+  tr: "Türk"
+  uk: "украї́нська мо́ва"
+  ur-PK: "اُردو (پاکستان)"
+  vi: "Tiếng Việt"
+  zh-CN: "中文"
+  zh-TW: "台灣中文"
+
+fallbacks:
+  en-GB:
+    - :en
+  en-US:
+    - :en
+  en_shaw:
+    - :en
+    - :en-GB
+    - :en-US
+  en_pirate:
+    - :en
+    - :en-GB
+    - :en-US
+  en_1337:
+    - :en
+    - :en-GB
+    - :en-US
+  sv:
+    - :sv-SE
+  he:
+    - :he-IL
+  es-AR:
+    - :es
+  es-CL:
+    - :es
+  es-MX:
+    - :es
+  gl:
+    - :gl-ES
+  zh:
+    - :zh-CN
+    - :zh-TW
+  ur-PK:
+    - :ur
+  de_formal:
+    - :de
+
+rtl:
+  - :ar
+  - :he
+  - :ur
+  - :ur-PK
+  - :ms
+
