@@ -59,7 +59,7 @@ end
 
 task 'Manifest.txt' do
   puts 'generating Manifest.txt from git'
-  sh %{git ls-files | grep -v gitignore > Manifest.txt}
+  sh %{git ls-files | grep -v gitignore | grep -v Gemfile > Manifest.txt}
   sh %{git add Manifest.txt}
 end
 
