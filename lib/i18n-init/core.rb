@@ -62,14 +62,24 @@ class I18n::Init
 
   # Sets default locale.
   # @note It will also set default locale name (language name) if it
-  #  will find it in available languages.
+  #  will find it in available languages and it hasn't been set already.
   # @param locale_code [String,Symbol] locale
   # @return [void]
   def default_locale=(locale_code)
     @default_locale = locale_code.to_sym
-    @default_locale_name = available_languages[@default_locale.to_s]
+    @default_locale_name ||= available_languages[@default_locale.to_s]
   end
   alias_method :default_locale_code=, :default_locale=
+
+  # Sets default locale and language name.
+  # @note It will also set default locale name (language name) if it
+  #  will find it in available languages.
+  # @param locale_code [String,Symbol] locale
+  # @return [void]
+  def default_locale_with_name=(locale_code)
+    @default_locale = locale_code.to_sym
+    @default_locale_name = available_languages[@default_locale.to_s]
+  end
 
   # Sets the initial locale that will be set on load.
   # @param locale_code [String,Symbol] locale
@@ -270,9 +280,21 @@ class I18n::Init
     meths = public_methods(false).map(&:to_s).grep(/\=\z/)
     self.class.class_eval do
       meths.each do |writer|
-        setter = "set_#{writer.chop}"
+        reader = writer.chop
+        setter = "set_" << reader
         next if method_defined?(setter)
         alias_method(setter, writer)
+        if method_defined?(reader) && instance_method(reader).arity == 0
+          reader_orig = "#{reader}_without_rw"
+          alias_method(reader_orig, reader)
+          define_method(reader) do |*args|
+            args.blank? and return public_send(reader_orig)
+            args.count > 1 and raise ArgumentError, "wrong number of arguments (#{args.count} for 0..1)"
+            public_send(writer, args.first)
+          end
+        else
+          alias_method(reader, writer)
+        end
       end
     end
   end
