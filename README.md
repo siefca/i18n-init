@@ -172,8 +172,11 @@ Below are the keywords you may use to set things up.
 * `default_fallback_locale` – sets the default locale used as a last part of fallbacks 
 * `locale` – locale code to be set application-wide after initializing (must be in available locales)
 
-### Querying ###
+#### Fallbacks ####
 
+* `fallbacks_use_default` – when set to `false` it prevents engine from adding default locale
+
+### Querying ###
 
 
 See also

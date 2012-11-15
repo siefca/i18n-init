@@ -308,15 +308,42 @@ class I18n::Init
     @resolver_cache_rev = nil
   end
 
+  # Loads settings from YAML file.
+  def yaml_load(fname)
+    return {} unless File.exists?(fname)
+    f = File.open(fname)
+    r = YAML::load(f)
+    f.close
+    r.nil? ? {} : r
+  end
+
   # Loads settings if needed and returns settings hash.
   def _settings
     return @settings unless @settings.blank?
-    @settings = File.exists?(config_file) ? YAML::load(File.open(config_file)) : {}
+    @settings = yaml_load(config_file)
+  end
+
+  def _settings_bundled
+    return @settings_bundled unless @settings_bundled.blank?
+    f = Pathname(__FILE__).dirname.join('..', 'example_settings', DEFAULT_CONFIG_FILE)
+    @settings_bundled = yaml_load(f)
   end
 
   # Returns resolver.
   def resolver
-    @resolver_cache ||= (_settings['available'] || {}).merge(available_locales)
+    return @resolver_cache unless @resolver_cache.blank?
+    @resolver_cache = {}
+    sources = []
+    sources << (_settings_bundled['available'] || {}) unless _settings['i18n-init-bundled']
+    sources << (_settings['available'] || {})
+    sources << available_locales
+    sources.each_with_object(@resolver_cache) do |src, r|
+      src.each_pair do |code, name|
+        unless name.blank?
+          r[code.to_s] = name.to_s
+        end
+      end
+    end
   end
 
   # Returns reverse resolver.
@@ -403,7 +430,9 @@ class I18n::Init
   # Fixes missing locale names.
   def fix_missing_locale_names
     @available_locales.each_pair do |code, name|
-      @available_locales[code] = code.to_s if name.blank?
+      if name.blank?
+        @available_locales[code] = resolve_code(code)
+      end
     end
   end
 
@@ -503,18 +532,18 @@ class I18n::Init
     when :Padrino, :Sinatra
       ['config', 'app', '.'].each do |dir|
         r = root_path.join(dir, fname)
-        return r if File.exists?(r)
+        return r if File.readable?(r)
       end
     when :Rails
       r = root_path.join('config', fname)
-      return r if File.exists?(r)
+      return r if File.readable?(r)
     when :Merb
       [ ['config'], ['conf'],
         ['dist', 'conf'],
         ['dist', 'config']
       ].each do |dirs|
         r = root_path.join(*dirs, fname)
-        return r if File.exists?(r)
+        return r if File.readable?(r)
       end
     end
     # Search known locations
@@ -523,7 +552,7 @@ class I18n::Init
       ['config'], ['conf'], ['app'], ['.']
     ].each do |dirs|
       r = root_path.join(*dirs, fname)
-      return r if File.exists?(r)
+      return r if File.readable?(r)
     end
     # Return bundled settings
     r = Pathname(__FILE__).dirname.join('..', 'example_settings', fname)

@@ -101,3 +101,5 @@ rtl:
   - :ur-PK
   - :ms
 
+i18n-init-bundled: true
+

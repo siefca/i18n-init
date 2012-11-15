@@ -1,9 +1,4 @@
-
-- bundle example yml with package and use it when original file cannot be found
-- document behavior (languages marked as "not available" are also loaded - section: "conventions")
-
 - add generator
-- add some method that will leave (sieve) available languages leaving just the given (@available_sieve)
 - allow delayed auto-initialization (other railtie hook executed at the very end)
 - add example controller method / add some helper for a controller method to I18n
 - add some specs
