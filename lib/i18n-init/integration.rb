@@ -8,54 +8,36 @@
 
 # @abstract This namespace is shared with I18n.
 module I18n
-  # Basic settings object for I18n quick setup.
-  # @return [Init] settings object
-  def init(&block)
-    block_given? ? Init.instance.config(&block) : Init.instance  
-  end
-  module_function :init
 
-  # Initializes I18n with prepared settings.
-  # @return [nil]
-  def init!
-    init.load!
-  end
-  module_function :init!
+  extend Module.new {
+    # Define methods that delegate to init object.
+    %w(init! debug! initialized? available_languages available_language_names
+       default_language_name language_name rtl_languages).each do |method|
+      module_eval <<-DELEGATORS, __FILE__, __LINE__ + 1
+        def #{method}
+          init.#{method}
+        end
+      DELEGATORS
+    end
 
-  # Enables debugging of I18n lookups.
-  # @return [nil]
-  def debug!
-    init.debug!
-  end
-  module_function :debug!
+    # Basic settings object for I18n quick setup.
+    # @return [Init] settings object
+    def init(&block)
+      block_given? ? Init.instance.config(&block) : Init.instance  
+    end
 
-  # Returns available languages hash.
-  # @return [Hash{String => String}] available language codes and their names.
-  def available_languages
-    init.available_languages
-  end
-  module_function :available_languages
+    # Returns +true+ if locale is included in available locales.
+    # @return [Boolean] +true+ if available, +false+ otherwise
+    def locale_available?(locale_code)
+      I18n.available_locales.include?(locale_code.to_sym)
+    end
+    alias_method :available_locale?, :locale_available?
 
-  # Returns available locales array.
-  # @return [Array<String>] locale codes
-  def available_locales
-    init.available_locales
-  end
-  module_function :available_locales
-
-  # Returns +true+ if locale is included in available locales.
-  # @return [Boolean] +true+ if available, +false+ otherwise
-  def locale_available?(locale_code)
-    init.available_languages.key?(locale_code.to_s)
-  end
-  alias_method :available_locale?, :locale_available?
-  module_function :locale_available?
-  module_function :available_locale?
-
-  # Returns true if initialization has been done.
-  # @return [Boolean] +true+ if initialized, +false+ otherwise
-  def initialized?
-    init.initialized?
-  end
- 
+    # Returns +true+ if locale is a default locale.
+    # @return [Boolean] +true+ if locale is a default locale, +false+ otherwise
+    def locale_default?(locale_code)
+      I18n.default_locale.to_sym == locale_code.to_sym
+    end
+    alias_method :default_locale?, :locale_default?
+  }
 end
