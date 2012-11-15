@@ -39,25 +39,38 @@ Conventions
 
 To work properly I18n Init needs a configuration file (`locale.yml`) and an initialization method call.
 It will look for a configuration file in the standard location of your framework and in other locations
-(if the file cannot be found there).
+if the file cannot be found there. If that will fail it will load bundled `locale.yml` containing many
+languages marked as available and some default fallbacks.
 
-It is designed to nicely initialize things, not to change them at runtime. That's why there are two phases of work:
+I18n Init is designed to nicely initialize things, not to change them at runtime.
+That's why there are two phases of work:
 
 1. **configuration** (uses block passed to `I18n.init`)
  
 2. **initialization** (invoked by `I18n.init!`)
   * loads settings from `locale.yml` or other configuration file (if exists)
+  * loads settings from configuration block given before
   * discovers available locales, default locale and fallbacks 
   * loads translations using the default translations directory of your framework or the given directory
   * configures fallbacks (if fallbacks are in use)
 
-If you really, really want to re-initialize things after everything was loaded and configured use `I18n.init.reset!`
+(If you really, really want to re-initialize things after everything was loaded and configured use `I18n.init.reset!`)
+
+### Available locales ###
+
+Available locales are the locales that your application supports. I18n Init allows you to add or remove them
+and then use in your views and controllers, for example, to present a list of languages that your site supports.
+
+The available locales are internally used when generating fallbacks. These are automatically created only for
+available locales. However, all the translations are loaded and can be used, regardless of available locales.
+You can configure fallbacks on your own for locales that aren't officially available but somehow
+are in use and need fallbacks. I18n Init won't destroy fallbacks that you've set manually, it just add new or redefine
+existing.
 
 Usage
 -----
 
-1. Create the **locale settings file** called `locale.yml` and place it in the configuration directory of your web
-application (`config` in Rails) or your program.
+1. Create the **locale settings file** called `locale.yml` and place it in the configuration directory of your web application (`config` in Rails) or your program.
 
 2. Create initializer in your web application (`config/initializers/locale.rb` in Rails)
 or in your program and put **`I18n.init!`** call there.
@@ -69,7 +82,7 @@ Just type **`rails g i18n-init`** to get the default files (initializer and conf
 
 ### Configuration file ###
 
-The `locale.yml` configuration file contains basic I18n settings. This file may look like:
+The `locale.yml` configuration file contains basic I18n settings. Its contents may look like this:
 
 ```yaml
 default: "en"
@@ -111,8 +124,10 @@ The example block looks like:
 
 ```ruby
 I18n.init do
-  default_locale   :en => "English"
-  available_locale :fr => "French"
+  default_locale      :en => "English"
+  available_locale    :fr => "français"
+  available_locales   :de => "Deutsch", :pl => "Polski"
+  available_locales   :fr, :pl, :en
   backend :Fallbacks
   backend :Pluralization
 end
@@ -120,13 +135,25 @@ end
 I18n.init!
 ```
 
+The code above will:
+
+* load data from the `locale.yml` file
+* set default locale code to `en`
+* set default locale name to `English`
+* add `fr` to available locales with the assigned language name `français`
+* add `de` to available locales with the assigned language name `Deutsch`
+* add `pl` to available locales with the assigned language name `Polski`
+* pick available locales `fr`, `pl` and `en` from all known available locales (loaded from file and added above)
+* enable fallbacks backend
+* enable pluralization backend
+
 Below are the keywords you may use to set things up.
 
 #### Files and directories ####
 
 * `config_file` – configuration file path, including file name (if not set then `locale.yml` is searched in known locations)
-* `default_load_path` – directory from which translation files are loaded (if not set then guessed); may contain globbing symbols
-* `root_path` – framework root path (if not set then guessed automatically)
+* `default_load_path` – directory used to load translation files (if not set then guessed); may contain wildcards
+* `root_path` – application's root path (if not set then guessed)
 
 #### Backends ####
 
@@ -134,8 +161,13 @@ Below are the keywords you may use to set things up.
 
 #### Locale codes and languages ####
 
-* `available_locale` – adds locale to available locales
-* `default_locale` (`default_locale_code`) – code of the default locale (if hash then also assigns its language name)
+* `available_locale code` – adds locale `code` to available locales (name is guessed or set to a string from `code`)
+* `available_locale code, name` – adds locale `code` to available locales with language `name` assigned to it
+* `available_locale code => name` – adds locale `code` to available locales with language `name` assigned to it
+* `default_locale code`
+* `default_locale_code`) – sets code of the default locale
+
+
 * `default_language` (`default_locale_name`) – name of the default language (preferably in its own language)
 * `default_fallback_locale` – sets the default locale used as a last part of fallbacks 
 * `locale` – locale code to be set application-wide after initializing (must be in available locales)
