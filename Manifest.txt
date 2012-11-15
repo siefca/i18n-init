@@ -21,4 +21,3 @@ lib/i18n-init/integration.rb
 lib/i18n-init/patches.rb
 lib/i18n-init/railtie.rb
 lib/i18n-init/version.rb
-locale.yml
