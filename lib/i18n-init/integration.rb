@@ -11,8 +11,7 @@ module I18n
 
   extend Module.new {
     # Define methods that delegate to init object.
-    %w(init! debug! initialized? available_languages available_language_names
-       default_language_name language_name rtl_languages).each do |method|
+    %w(init! debug! initialized? available_languages available_language_names rtl_languages).each do |method|
       module_eval <<-DELEGATORS, __FILE__, __LINE__ + 1
         def #{method}
           init.#{method}
@@ -20,13 +19,23 @@ module I18n
       DELEGATORS
     end
 
+    def language
+      init.language(false)
+    end
+
+    def default_language
+      init.default_language(false)
+    end
+
     # Basic settings object for I18n quick setup.
+    # 
     # @return [Init] settings object
     def init(&block)
       block_given? ? Init.instance.config(&block) : Init.instance  
     end
 
     # Returns +true+ if locale is included in available locales.
+    # 
     # @return [Boolean] +true+ if available, +false+ otherwise
     def locale_available?(locale_code)
       I18n.available_locales.include?(locale_code.to_sym)
@@ -34,6 +43,7 @@ module I18n
     alias_method :available_locale?, :locale_available?
 
     # Returns +true+ if locale is a default locale.
+    # 
     # @return [Boolean] +true+ if locale is a default locale, +false+ otherwise
     def locale_default?(locale_code)
       I18n.default_locale.to_sym == locale_code.to_sym

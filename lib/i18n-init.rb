@@ -5,7 +5,6 @@
 require 'i18n'
 
 require 'i18n-init/version'
-require 'i18n-init/patches'
 require 'i18n-init/core'
 require 'i18n-init/integration'
 

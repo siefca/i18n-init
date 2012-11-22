@@ -1,3 +1,5 @@
+- finish README
+- check if ANY configuration option can be overriden (back and forth - e.g. add backends to yml, etc.)
 - add generator
 - allow delayed auto-initialization (other railtie hook executed at the very end)
 - add example controller method / add some helper for a controller method to I18n
