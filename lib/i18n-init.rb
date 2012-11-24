@@ -3,6 +3,7 @@
 # License::   This program is licensed under the terms of {file:LGPL-LICENSE GNU Lesser General Public License} or {file:COPYING Ruby License}.
 
 require 'i18n'
+require 'pathname'
 
 require 'i18n-init/version'
 require 'i18n-init/core'

@@ -4,7 +4,6 @@
 #
 # This file contains I18n::Init class.
 
-require 'pathname'
 require 'singleton'
 
 require_relative './debug'
