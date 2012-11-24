@@ -18,9 +18,8 @@ class I18n::Init
       if b_name.is_a?(Module)
         name_f = b_name.name.split(':').last.downcase
       else
-        b_name = b_name.to_s
-        name_f = b_name
-        b_name = I18n::Backend.const_get(b_name)
+        name_f = b_name.to_s
+        b_name = I18n::Backend.const_get(name_f)
       end
       @backends[name_f] = b_name
       nil
@@ -33,6 +32,7 @@ class I18n::Init
     # @return [nil]
     def load!(cfile = nil)
       p_debug "loading backends [#{@backends.keys.map{|n|n.capitalize}.join(', ')}]"
+      @backends = backends_merged
       @backends.each_pair do |b_name, b_module|
         unless I18n.backend.class.included_modules.include?(b_module)
           require "i18n/backend/#{b_name}" rescue nil
@@ -44,10 +44,29 @@ class I18n::Init
 
     private
 
+    def backends_merged
+      @backends_merged ||= backends_from_file.merge(@backends).tap { p_debug "merging backends" }
+    end
+
+    def backends_from_file
+      @backends_from_file ||= Array(settings['backends']).uniq.each_with_object({}) do |b_name, o|
+        b_name = b_name.to_s
+        o[b_name] = I18n::Backend.const_get(b_name)
+      end 
+    end
+
     # Resets buffers.
     def reset_buffers
       p_debug "resetting buffers"
       @backends = {}
+      super if defined?(super)
+    end
+
+    # Invalidates cached settings based on configuration file contents.
+    def invalidate_caches
+      p_debug "invalidating caches"
+      @backends_merged = nil
+      @backends_from_file = nil
       super if defined?(super)
     end
 
