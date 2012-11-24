@@ -10,20 +10,58 @@ class I18n::Init
   # This module handles fallbacks.
   module Fallbacks
 
+    # @override fallback
+    #   Returns known fallbacks.
+    #   
+    #   @return [Hash{Symbol => Array<Symbol>}] fallbacks map
+    # 
+    # @override fallback(fallback_map)
+    #   Adds fallback(s) to memorized fallbacks. If fallbacks for the given language exist
+    #   it will replace them.
+    #   
+    #   @param fallback_map [Hash{Symbol,String => Symbol,String,Array<Symbol,String>}] fallbacks map
+    #   @return [Hash{Symbol => Array<Symbol>}] current fallbacks map
+    def fallback(fallback_map = nil)
+      return @fallbacks if fallback_map.nil?
+      @fallbacks.merge!(normalize(fallback_map))
+    end
+    alias_method :fallbacks, :fallback
+
     # Sets or unsets the flag that causes +default_fallback_locale+
-    # and +default_locale+ to be added as fallbacks for any language.
+    # to be used as fallback(s) for any language.
+    # 
+    # @param v [Boolean,Object] value 
+    # @return [Boolean] current state
     def fallbacks_use_default=(v)
       @fallbacks_use_default = !!v
     end
 
+    # Sets the flag that causes +default_fallback_locale+
+    # to be used as fallback(s) for any language.
+    # 
+    # @return [Boolean] +true+
     def fallbacks_use_default!
       self.fallbacks_use_default = true
     end
 
+    # Returns +true+ if +fallbacks_use_default+ flag is set.
+    # 
+    # @return [Boolean] current state of +fallbacks_use_default+
     def fallbacks_use_default?
       @fallbacks_use_default
     end
 
+    # @override fallbacks_use_default(v)
+    #   Sets or unsets the flag that causes +default_fallback_locale+
+    #   to be used as fallback(s) for any language.
+    #   
+    #   @param v [Boolean,Object] value 
+    #   @return [Boolean] current state
+    # 
+    # @override fallbacks_use_default
+    #   Returns +true+ if +fallbacks_use_default+ flag is set.
+    #   
+    #   @return [Boolean] current state
     def fallbacks_use_default(*args)
       case args.count
       when 0
@@ -35,13 +73,24 @@ class I18n::Init
       end
     end
 
-    # Gets or sets default fallback locale.
+    # @override default_fallback_locale(code)
+    #   Sets default fallback locale.
+    #   
+    #   @param code [Symbol,String,Array<Symbol,String>] locale code(s)
+    #   @return [Array<Symbol>] current fallback locale(s)
     # 
-    # @return [String] locale code  
+    # @override default_fallback_locale
+    #   Gets current fallback locale(s) setting.
+    #   
+    #   @return [String] locale code  
     def default_fallback_locale(code = nil)
       return (self.default_fallback_locale = code) unless code.nil?
       return @default_fallback_locale if @default_fallback_locale.present?
-      if default_fallbacks_from_framework.present?
+      if default_fallbacks_from_file.present?
+        @default_fallback_locale = default_fallbacks_from_file
+        s_title = "settings file"
+      end
+      if @default_fallback_locale.blank? && default_fallbacks_from_framework.present?
         @default_fallback_locale = default_fallbacks_from_framework
         s_title = "framework settings"
       end
@@ -65,6 +114,11 @@ class I18n::Init
     alias_method :default_fallback,         :default_fallback_locale
     alias_method :default_fallbacks,        :default_fallback_locale
 
+    # @override default_fallback_locale(code)
+    #   Sets default fallback locale.
+    #   
+    #   @param code [Symbol,String,Array<Symbol,String>] locale code(s)
+    #   @return [Array<Symbol>] current fallback locale(s)
     def default_fallback_locale=(code)
       if code.is_a?(Array)
         @default_fallback_locale = code.compact.map{|c| c.to_s.to_sym}
@@ -83,10 +137,17 @@ class I18n::Init
 
     private
 
+    # Read fallbacks from a configuration file.
     def fallbacks_from_file
-      normalize(settings['fallbacks'] || {})
+      @fallbacks_from_file ||= normalize(settings['fallbacks'] || {})
     end
 
+    # Read default fallbacks from a configuration file.
+    def default_fallbacks_from_file
+      settings['default_fallbacks'].presence || []
+    end
+
+    # Read fallbacks from a framework settings.
     def fallbacks_from_framework
       fb = @framework_conf[:fallbacks]
       case framework
@@ -96,6 +157,7 @@ class I18n::Init
       {}
     end
 
+    # Read default fallbacks from a configuration file.
     def default_fallbacks_from_framework
       fb = @framework_conf[:fallbacks]
       case framework
@@ -111,6 +173,7 @@ class I18n::Init
       end
     end
 
+    # Reverse-merges fallbacks from the given source.
     def merge_fallbacks(source, title)
       @fallbacks_merged =
         (source.present? ? source.merge(@fallbacks_merged) : @fallbacks_merged).tap do |r|
@@ -118,8 +181,10 @@ class I18n::Init
         end
     end
 
+    # Returns merged fallbacks.
     def fallbacks_merged
-      @fallbacks_merged.present? and return @fallbacks_merged
+      @fallbacks_merged.nil? or return @fallbacks_merged
+      @fallbacks_merged = {}
       p_debug " - merging known sources"
       merge_fallbacks(@fallbacks, "configuration block")
       merge_fallbacks(fallbacks_from_file, "configuration file")
@@ -132,25 +197,19 @@ class I18n::Init
       return nil unless I18n.respond_to?(:fallbacks)
       return nil if framework == :Rails && Rails.configuration.i18n.fallbacks == false
       p_debug "setting up fallbacks"
-      merged = fallbacks_merged
+      @fallbacks = fallbacks_merged
       if @fallbacks_use_default
         I18n.fallbacks = I18n::Locale::Fallbacks.new(default_fallback_locale)
         p_debug "default fallback locale will be used"
       else
         I18n.fallbacks = I18n::Locale::Fallbacks.new
       end
-      available_locales.each_pair do |locale, language|
-        locale = locale.to_sym
-        merged[locale].tap do |entries|
-          I18n.fallbacks.tap do |f|
-            if entries.present?
-              entries = entries.dup
-              entries.delete(locale)
-              f.map(locale => entries)
-              p_debug " - #{locale} -> #{entries.join(' -> ')}"
-            end
-          end
-        end
+      @fallbacks.each_pair do |code, entries|
+        next if entries.blank?
+        entries = entries.dup
+        entries.delete(code)
+        I18n.fallbacks.map(code => entries)
+        p_debug " - #{code} -> #{entries.join(' -> ')}"
       end
     end
 
@@ -160,10 +219,18 @@ class I18n::Init
       @fallbacks_use_default    = true
       @default_fallback_locale  = nil
       @fallbacks                = {}
-      @fallbacks_merged         = {}
       super if defined?(super)
     end
 
+    # Invalidates cached settings based on configuration file contents.
+    def invalidate_caches
+      p_debug "invalidating caches"
+      @fallbacks_merged     = nil
+      @fallbacks_from_file  = nil
+      super if defined?(super)
+    end
+
+    # Gathers framework configuration for later use.
     def gather_framework_info
       case framework
       when :Rails
