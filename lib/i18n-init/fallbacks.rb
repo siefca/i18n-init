@@ -135,6 +135,13 @@ class I18n::Init
       super if defined?(super)
     end
 
+    def list_fallbacks
+      lj = fallbacks.keys.max_by(&:length).length
+      fallbacks.keys.sort.each_with_object([]) do |f,o|
+        o << "- #{f.to_s.ljust(lj)} -> #{I18n.fallbacks[f].join(' -> ')}"
+      end.join(",\n  ")
+    end
+
     private
 
     # Read fallbacks from a configuration file.

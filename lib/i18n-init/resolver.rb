@@ -31,6 +31,7 @@ class I18n::Init
     # Returns resolver.
     def resolver
       @resolver_cache ||= {}.tap do |cache|
+        p_debug "loading resolver data"
         [].tap do |srcs|
           srcs << (settings_bundled['available'] || {}) unless settings['i18n-init-bundled']
           srcs << (settings['available'] || {})
@@ -57,6 +58,7 @@ class I18n::Init
 
     # Invalidates caches.
     def invalidate_caches
+      p_debug "invalidating caches"
       reset_resolver_caches
       super if defined?(super)
     end

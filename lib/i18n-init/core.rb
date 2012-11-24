@@ -112,8 +112,9 @@ I18n info
 
 I18n is #{initialized? ? "initialized" : "not initialized"}.
 Framework is #{framework}.
+Environment is #{environment || 'not set'}.
 
-Main backend: #{I18n.backend.class.name}
+Main backend:  #{I18n.backend.class.name}
 Used backends: #{backend_modules_list}
 
 Current locale: #{I18n.locale} (#{I18n.language}), fallbacks: #{I18n.fallbacks[I18n.locale].join(" -> ")}
@@ -121,8 +122,11 @@ Default locale: #{I18n.default_locale} (#{I18n.default_language}), fallbacks: #{
 
 Default fallbacks: #{I18n.fallbacks.defaults.join(' -> ')}
 
-Available locales: #{available_languages.each_with_object([]) { |(c,n),o|  o << "#{c} (#{n})" }.join(", ")}
+Available locales:
+  #{list_available_locales}.
 
+Available fallbacks:
+  #{list_fallbacks}.
 
   INFO
   end
@@ -132,8 +136,27 @@ Available locales: #{available_languages.each_with_object([]) { |(c,n),o|  o << 
     puts info
   end
 
+  # Gets framework environment.
+  # 
+  # @return [Symbol] envoronment name
+  def environment
+    @environment.present? and return @environment
+    p_debug "reading environment"
+    case framework
+    when :Rails
+      @environment = Rails.env
+    end
+    @environment ||= ENV['ENV'].presence || ENV['ENVIRONMENT'].presence
+    @environment ||= 'production'  if ENV.has_key?('production')
+    @environment ||= 'development' if ENV.has_key?('development')
+    @environment ||= 'test'        if ENV.has_key?('test')
+    @environment   = @environment.presence
+    @environment &&= @environment.to_s
+  end
+
   private
 
+  # Gets a list of backend modules.
   def backend_modules_list
     I18n.backend.class.included_modules.
       map     { |m| m.to_s                      }.
@@ -148,6 +171,7 @@ Available locales: #{available_languages.each_with_object([]) { |(c,n),o|  o << 
     @initialized            = false
     @initialization_delayed = true
     @delayed_load_arg       = nil
+    @environment            = nil
     super if defined?(super)
     invalidate_caches
     nil

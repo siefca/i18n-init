@@ -36,10 +36,14 @@ class I18n::Init
     end
 
     # Gets the language name of a default locale.
-    def default_language_name(internal = true)
+    # 
+    # @param internal [Boolean] optional argument; if +false+ then external resolver is used on +I18n.default_locale+,
+    #  if +true+ (default) then memorized value of the default locale name is returned.
+    # @return [String] language name
+    def default_language(internal = true)
       internal ? @default_locale_name : resolve_code(I18n.default_locale)
     end
-    alias_method :default_language, :default_language_name
+    alias_method :default_language_name, :default_language
 
     # Gets the language name of current locale.
     def language_name(internal = true)
@@ -84,6 +88,8 @@ class I18n::Init
     end
     alias_method :available_locales,  :available_locale
     alias_method :available_language, :available_locale
+    alias_method :pick_locales,       :available_locale
+    alias_method :pick_locale,        :available_locale
 
     # Gets available languages hash
     def available_languages
@@ -150,6 +156,16 @@ class I18n::Init
       I18n.available_locales  = available_locales.keys
       I18n.default_locale     = default_locale
       I18n.locale             = available_locales.key?(locale.to_s) ? locale : default_locale
+    end
+
+    # Lists available locales as a string.
+    # 
+    # @return []
+    def list_available_locales
+      lj = available_locales.keys.max_by(&:length).length
+      Hash[available_languages.sort].each_with_object([]) do |(c,n),o|
+        o << "- #{c.to_s.ljust(lj)} (#{n})"
+      end.join(",\n  ")
     end
 
     private
