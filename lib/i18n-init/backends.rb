@@ -22,12 +22,34 @@ class I18n::Init
         name_f = b_name
         b_name = I18n::Backend.const_get(b_name)
       end
-      require "i18n/backend/#{name_f}" rescue nil
-      I18n::Backend::Simple.send(:include, b_name)
+      @backends[name_f] = b_name
       nil
     end
     alias_method :add_backend=, :add_backend
     alias_method :new_backend=, :add_backend
+
+    # Initializes I18n Init.
+    # 
+    # @return [nil]
+    def load!(cfile = nil)
+      p_debug "loading backends [#{@backends.keys.map{|n|n.capitalize}.join(', ')}]"
+      @backends.each_pair do |b_name, b_module|
+        unless I18n.backend.class.included_modules.include?(b_module)
+          require "i18n/backend/#{b_name}" rescue nil
+          I18n.backend.class.send(:include, b_module)
+        end
+      end
+      super if defined?(super)
+    end
+
+    private
+
+    # Resets buffers.
+    def reset_buffers
+      p_debug "resetting buffers"
+      @backends = {}
+      super if defined?(super)
+    end
 
   end # module Backends
 end # class I18n::Init

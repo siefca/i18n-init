@@ -17,6 +17,7 @@ module I18n
 
       config.after_initialize do
         ::Rails.configuration.i18n_init = I18n.init
+        ::I18n.init.delayed_load!
       end
 
     end # class Railtie

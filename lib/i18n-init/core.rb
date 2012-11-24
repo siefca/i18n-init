@@ -7,6 +7,7 @@
 require 'pathname'
 require 'singleton'
 
+require_relative './debug'
 require_relative './paths'
 require_relative './settings'
 require_relative './resolver'
@@ -16,19 +17,26 @@ require_relative './backends'
 
 # This class handles basic settings of I18n.
 class I18n::Init
-  include Singleton
-  include Paths
-  include Settings
-  include Resolver
-  include Locales
+  include Singleton  
   include Fallbacks
+  include Locales
+  include Resolver
   include Backends
+  include Settings
+  include Paths
+  include Debug
+
+  # Known top-level objects that 
+  KNOWN_FRAMEWORKS = [ :Rails, :Padrino, :Sinatra, :Merb ]
 
   # Initializes instance and creates singleton methods that call
   # public instance methods of the same names.
   # 
   # @return [Init] self
   def initialize
+    @debug = true
+    p_debug "hello world!"
+    gather_framework_info
     reset_buffers
   end
 
@@ -36,20 +44,37 @@ class I18n::Init
   # return [Init] self
   def config(&block)
     block_given? or return self
+    p_debug "evaluating configuration block"
     block.arity == 0 or return tap(&block)
     instance_eval(&block)
   end
 
-  # Loads locale configuration from YAML files.
+  # Initializes I18n Init.
   # 
   # @return [nil]
   def load!(cfile = nil)
-    super if defined?(super)
-    @initialized = true
+    if framework == :Rails && @initialization_delayed
+      @delayed_load_arg = cfile
+      p_debug "delaying initialization"
+    else
+      p_debug "initializing I18n"
+      super if defined?(super)
+      @initialized = true
+    end
     nil
   end
   alias_method :commit!,  :load!
   alias_method :init!,    :load!
+
+  # Initializes I18n Init unless already initialized.
+  # 
+  # @return [nil]
+  def delayed_load!
+    @initialization_delayed = false
+    p_debug "performing delayed initialization"
+    load!(@delayed_load_arg) unless initialized?
+    nil
+  end
 
   # Returns true if initialization is completed.
   # 
@@ -70,9 +95,7 @@ class I18n::Init
   # 
   # @return [Symbol] framework name
   def framework
-    @framework ||= [ :Rails, :Padrino, :Sinatra, :Merb, :NilClass ].find do |fr|
-      Kernel.const_defined?(fr)
-    end
+    @framework ||= KNOWN_FRAMEWORKS.find { |fr| Kernel.const_defined?(fr) } || :unknown
   end
 
   def list_available_with_names
@@ -81,56 +104,39 @@ class I18n::Init
     end
   end
 
-  # Enables debugging of translation lookups.
-  # 
-  # @return [nil]
-  def debug!
-    I18n::Backend::Simple.class_eval do
-      def lookup(locale, key, scope = [], options = {})
-        init_translations unless initialized?
-        keys = I18n.normalizetr_keys(locale, key, scope, options[:separator])
-        puts "I18N keys: #{keys}"
-        keys.inject(translations) do |result, tr_key|
-          tr_key = tr_key.to_sym
-          return nil unless result.is_a?(Hash) && result.key?(tr_key)
-          result = result[tr_key]
-          result = resolve(locale, tr_key, result, options.merge(:scope => nil)) if result.is_a?(Symbol)
-          puts "\t\t => " + result + "\n" if result.is_a?(String)
-          result
-        end
-      end
-    end
-    nil
-  end
-  alias_method :enable_debug, :debug!
+  # Gets some info about I18n settings.
+  def info
+    <<-INFO
+I18n info 
+---------
 
-    # Gets some info about I18n settings.
-    def info
-      <<-INFO
-  I18n info 
-  ----------
+I18n is #{initialized? ? "initialized" : "not initialized"}.
+Framework is #{framework}.
 
-  I18n is #{initialized? ? "initialized" : "not initialized"}.
+Current locale: #{I18n.locale} (#{I18n.language}), fallbacks: #{I18n.fallbacks[I18n.locale].join(" -> ")}
+Default locale: #{I18n.default_locale} (#{I18n.default_language}), fallbacks: #{I18n.fallbacks[I18n.default_locale].join(" -> ")}
 
-  current locale:           #{I18n.locale} (#{I18n.language})
-  current locale fallbacks: #{I18n.fallbacks[I18n.locale].join(" -> ")}
+Default fallbacks: #{I18n.fallbacks.defaults.join(' -> ')}
 
-  default locale:           #{I18n.default_locale} (#{I18n.default_language})
-  default locale fallbacks: #{I18n.fallbacks[I18n.default_locale].join(" -> ")}
-
-  default fallback locale:  #{default_fallback_locale} (#{resolve_code(default_fallback_locale)})
-
-  available locales:        #{available_languages.each_with_object([]) { |(c,n),o|  o << "#{c} (#{n})" }.join(", ")}
+Available locales: #{available_languages.each_with_object([]) { |(c,n),o|  o << "#{c} (#{n})" }.join(", ")}
 
   INFO
-    end
+  end
+
+  # Prints info.
+  def print_info
+    puts info
+  end
 
   private
 
   # Resets buffers.
   def reset_buffers
-    @framework    = nil
-    @initialized  = false
+    p_debug "resetting buffers"
+    @framework              = nil
+    @initialized            = false
+    @initialization_delayed = true
+    @delayed_load_arg       = nil
     super if defined?(super)
     invalidate_caches
     nil
@@ -138,8 +144,14 @@ class I18n::Init
 
   # Invalidates cached settings based on configuration file contents.
   def invalidate_caches
+    p_debug "invalidating caches"
     super if defined?(super)
     nil
+  end
+
+  def gather_framework_info
+    @framework_conf = {}
+    super if defined?(super)
   end
 
 end # class I18n::Init

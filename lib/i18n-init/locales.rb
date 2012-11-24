@@ -77,8 +77,7 @@ class I18n::Init
             end
           end
         else
-          arg = [ arg ] unless arg.is_a?(Array)
-          @available_filter.concat(arg.map(&:to_s))
+          @available_filter.concat(Array(arg).map(&:to_s))
         end
       end # args.each
       nil
@@ -139,6 +138,7 @@ class I18n::Init
     # 
     # @return [nil]
     def load!(cfile = nil)
+
       setup_available_locales
       setup_default_locale
       setup_rtl_locale
@@ -184,6 +184,7 @@ class I18n::Init
 
     # Fixes missing locale names.
     def fix_missing_locale_names
+      p_debug "fixing missing locale names"
       @available_locales.each_pair do |code, name|
         if name.blank?
           @available_locales[code] = resolve_code(code)
@@ -193,6 +194,7 @@ class I18n::Init
 
     # Sets up RTL locales.
     def setup_rtl_locale
+      p_debug "setting up RTL locales"
       if settings['rtl'].present?
         @rtl_languages.concat(settings['rtl']).uniq!
       end
@@ -201,25 +203,38 @@ class I18n::Init
 
     # Sets up default locale.
     def setup_default_locale
+      p_debug "setting up default locale"
       if @default_locale_code.present?
+        p_debug " - got default locale code: #{@default_locale_code}"
         @default_locale_name ||= @available_locales[@default_locale_code.to_s].presence
         @default_locale_name ||= @default_locale_code.to_s
       else # default locale code is missing
+        p_debug " - default locale code is missing"
         @default_locale_code   = settings['default'].presence
         @default_locale_code &&= @default_locale_code.to_sym
         if @default_locale_code.present? # default locale code given in file
+          p_debug " - got default locale code from configuration file: #{@default_locale_code}"
           @default_locale_name ||=  @available_locales[@default_locale_code.to_s].presence
           @default_locale_name ||= @default_locale_code.to_s
         else # default locale not found in file and not given
-          if @available_locales.present? && @available_locales.first.is_a?(Array) && @available_locales.first.count == 2
-            @default_locale_code = @available_locales.first[0]
-            @default_locale_name = @available_locales.first[1]
-          end
-          if @default_locale_code.blank?
-            @default_locale_code = DEFAULT_LOCALE_RESCUE
-            @default_locale_name = DEFAULT_LOCALE_NAME_RESCUE
+          @available_locale_code ||= @framework_conf[:default_locale].presence
+          if @available_locale_code.present?
+            p_debug " - default locale found in previous framework configuration"
+            @default_locale_name ||= @available_locales[@default_locale_code.to_s].presence
           else
-            @default_locale_code = @default_locale_code.to_sym
+            p_debug " - default locale code is missing (not found in file and not given)"
+            if @available_locales.present? && @available_locales.first.is_a?(Array) && @available_locales.first.count == 2
+              @default_locale_code = @available_locales.first[0]
+              @default_locale_name = @available_locales.first[1]
+            end
+            if @default_locale_code.blank?
+              p_debug " - default locale code cannot be deduced, using defaults"
+              @default_locale_code = DEFAULT_LOCALE_RESCUE
+              @default_locale_name = DEFAULT_LOCALE_NAME_RESCUE
+            else
+              p_debug " - default locale code is present but name is empty"
+              @default_locale_code = @default_locale_code.to_sym
+            end
           end
         end
       end
@@ -228,6 +243,7 @@ class I18n::Init
 
     # Resets buffers.
     def reset_buffers
+      p_debug "resetting buffers"
       @available_locales        = {}
       @available_filter         = []
       @rtl_languages            = []

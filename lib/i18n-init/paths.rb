@@ -233,4 +233,3 @@ class I18n::Init
   end # module Paths
 
 end # class I18n::Init
-

@@ -1,5 +1,8 @@
 default: "en"
 
+backends:
+  - :fallbacks
+
 available:
   ar: "العربية"
   bg: "български език"
