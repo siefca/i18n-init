@@ -1,14 +1,18 @@
 - map configuration options to file sections:
-  - default_locale          - ok, ok
-  - load_path               - ok, --
-  - default_fallback_locale - ok, --
-  - initial_locale          - ok, --
-  - rtl                     - ok, ok
-  - available_locales       - ok, ok
-  - backends                - ok, --
-  - filter                  - --, --
   
-- finish README
+  - initial_locale          - ok, --
+  - backends                - ok, --
+  
+  - fallbacks               - ok, ok
+  - available_locales       - ok, ok
+  - default_locale          - ok, ok
+  - rtl                     - ok, ok
+  - default_fallbacks       - ok, ok
+  
+  - load_path               - ok, --
+  - filter                  - ok, --
+
+- finish README (note about all options, note about overriding, note about what variables contain)
 - add generator
 - allow delayed auto-initialization (other railtie hook executed at the very end)
 - add example controller method / add some helper for a controller method to I18n
