@@ -220,7 +220,7 @@ class I18n::Init
           @default_locale_code ||= @framework_conf[:default_locale]
           if @default_locale_code.present?
             @default_locale_code = @default_locale_code.to_s.to_sym
-            p_debug " - default locale found in previous framework configuration"
+            p_debug " - default locale found in framework configuration"
             @default_locale_name ||= @available_locales[@default_locale_code.to_s].presence
           else
             p_debug " - default locale code is missing (not found in file and not given)"

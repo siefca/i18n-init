@@ -35,8 +35,8 @@ class I18n::Init
   def initialize
     @debug = true
     p_debug "hello world!"
-    gather_framework_info
     reset_buffers
+    gather_framework_info
   end
 
   # Evaluates a block tapped to {I18n::Init} if block is given.
@@ -58,6 +58,7 @@ class I18n::Init
     else
       p_debug "initializing I18n"
       super if defined?(super)
+      invalidate_caches
       @initialized = true
     end
     nil
@@ -112,12 +113,16 @@ I18n info
 I18n is #{initialized? ? "initialized" : "not initialized"}.
 Framework is #{framework}.
 
+Main backend: #{I18n.backend.class.name}
+Used backends: #{backend_modules_list}
+
 Current locale: #{I18n.locale} (#{I18n.language}), fallbacks: #{I18n.fallbacks[I18n.locale].join(" -> ")}
 Default locale: #{I18n.default_locale} (#{I18n.default_language}), fallbacks: #{I18n.fallbacks[I18n.default_locale].join(" -> ")}
 
 Default fallbacks: #{I18n.fallbacks.defaults.join(' -> ')}
 
 Available locales: #{available_languages.each_with_object([]) { |(c,n),o|  o << "#{c} (#{n})" }.join(", ")}
+
 
   INFO
   end
@@ -128,6 +133,13 @@ Available locales: #{available_languages.each_with_object([]) { |(c,n),o|  o << 
   end
 
   private
+
+  def backend_modules_list
+    I18n.backend.class.included_modules.
+      map     { |m| m.to_s                      }.
+      select  { |m| m[0..12] == "I18n::Backend" }.
+      map     { |m| m.split(':').last           }.join(', ')
+  end
 
   # Resets buffers.
   def reset_buffers
@@ -144,12 +156,13 @@ Available locales: #{available_languages.each_with_object([]) { |(c,n),o|  o << 
   # Invalidates cached settings based on configuration file contents.
   def invalidate_caches
     p_debug "invalidating caches"
+    @framework_conf = {}
     super if defined?(super)
     nil
   end
 
+  # Memorizes framework-related configuration in early stage of initialization.
   def gather_framework_info
-    @framework_conf = {}
     super if defined?(super)
   end
 
