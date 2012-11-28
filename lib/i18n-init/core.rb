@@ -114,37 +114,9 @@ class I18n::Init
     @framework ||= KNOWN_FRAMEWORKS.find { |fr| Kernel.const_defined?(fr) } || :unknown
   end
 
-  def list_available_with_names
-    available_languages.each_with_object do |code, name, o|
-      available_languages[code.to_s]
-    end
-  end
-
   # Gets some info about I18n settings.
   def info
-    <<-INFO
-I18n info 
----------
-
-I18n is #{initialized? ? "initialized" : "not initialized"}.
-Framework is #{framework}.
-Environment is #{environment || 'not set'}.
-
-Main backend:  #{I18n.backend.class.name}
-Used backends: #{backend_modules_list}
-
-Current locale: #{I18n.locale} (#{I18n.language}), fallbacks: #{I18n.fallbacks[I18n.locale].join(" -> ")}
-Default locale: #{I18n.default_locale} (#{I18n.default_language}), fallbacks: #{I18n.fallbacks[I18n.default_locale].join(" -> ")}
-
-Default fallbacks: #{I18n.fallbacks.defaults.join(' -> ')}
-
-Available locales:
-  #{list_available_locales}.
-
-Available fallbacks:
-  #{list_fallbacks}.
-
-  INFO
+    i18n_info
   end
 
   # Prints info.
@@ -220,6 +192,36 @@ Available fallbacks:
   # Memorizes framework-related configuration in early stage of initialization.
   def gather_framework_info
     super if defined?(super)
+  end
+
+  # Gets some info about I18n settings.
+  def i18n_info
+    <<-INFO
+I18n info 
+---------
+
+I18n is #{initialized? ? "initialized" : "not initialized"}.
+Framework is #{framework}. Environment is #{environment || 'not set'}.
+I18n Init configuration block has #{configuration_block_used? ? "" : "not "}been used.
+
+Configuration file:     #{config_file}
+Bundled settings file:  #{bundled_settings_file}
+
+Main backend:  #{I18n.backend.class.name}
+Used backends: #{backend_modules_list}
+
+Current locale: #{I18n.locale} (#{I18n.language}), fallbacks: #{I18n.fallbacks[I18n.locale].join(" -> ")}
+Default locale: #{I18n.default_locale} (#{I18n.default_language}), fallbacks: #{I18n.fallbacks[I18n.default_locale].join(" -> ")}
+
+Default fallbacks: #{I18n.fallbacks.defaults.join(' -> ')}
+
+Available locales:
+  #{list_available_locales(false)}.
+
+Available fallbacks:
+  #{list_fallbacks}.
+
+INFO
   end
 
 end # class I18n::Init
