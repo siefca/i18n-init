@@ -13,26 +13,35 @@ class I18n::Init
     DEFAULT_LOCALE_RESCUE       = :en
     DEFAULT_LOCALE_NAME_RESCUE  = 'English'
 
-    # Sets the default locale.
+    # @override default_locale
+    #   Gets the default locale.
+    #   
+    #   @return [Symbol] default locale
     # 
-    # @note It will also set default locale name (language name) if it
-    #  will find it in available languages and it hasn't been set already.
+    # @override default_locale(locale_code)
+    #   Sets the default locale.
+    #   
+    #   @note It will also set default locale name (language name) if it
+    #    will find it in available languages and it hasn't been set already.
+    #   
+    #   @param locale_code [String,Symbol] locale
+    #   @return [void]
+    def default_locale(locale_code = nil)
+      return (self.default_locale = locale_code) unless locale_code.nil?
+      @default_locale_code
+    end
+
+    # Sets the default locale.
     # 
     # @param locale_code [String,Symbol] locale
     # @return [void]
-    def default_locale(locale_code = nil)
-      return @default_locale_code if locale_code.nil?
-      return nil if locale_code.blank?
+    def default_locale=(locale_code)
       locale_code = { locale_code => nil } unless locale_code.is_a?(Hash)
       locale_code.each_pair do |code, name|
-        @default_locale_code = code.to_sym
-        @default_locale_name = name.blank? ? @available_locales[code.to_s].presence : name.to_s
+        @default_locale_code = code.blank? ? nil : code.to_sym
+        @default_locale_name = name.blank? ? @available_languages[code.to_sym].presence : name.to_s
       end
-      nil
-    end
-    # Sets the default locale.
-    def default_locale=(locale_code)
-      default_locale(locale_code)
+      @default_locale_code
     end
 
     # Gets the language name of a default locale.
@@ -46,6 +55,10 @@ class I18n::Init
     alias_method :default_language_name, :default_language
 
     # Gets the language name of current locale.
+    #
+    # @param internal [Boolean] optional argument; if +false+ then external resolver is used on +I18n.locale+,
+    #  if +true+ (default) then memorized value of the locale name is returned.
+    # @return [String] language name
     def language_name(internal = true)
       resolve_code(internal ? locale : I18n.locale)
     end
@@ -54,11 +67,22 @@ class I18n::Init
     # Sets the initial locale that will be set on load.
     # 
     # @param locale_code [String,Symbol] locale
-    # @return [Symbl] locale
+    # @return [Symbol] locale
     def locale=(locale_code)
-      @locale = locale_code.to_sym
+      @locale = locale_code.present? ? locale_code.to_sym : nil
     end
 
+    # @override locale
+    #   Gets the initial locale that will be set on load.
+    #   
+    #   @param locale_code [String,Symbol] locale
+    #   @return [Symbl] locale
+    # 
+    # @override locale(locale_code)
+    #   Sets the initial locale that will be set on load.
+    #   
+    #   @param locale_code [String,Symbol] locale
+    #   @return [Symbl] locale
     def locale(locale_code = nil)
       return (self.locale = locale_code) unless locale_code.nil?
       @locale
@@ -70,75 +94,63 @@ class I18n::Init
     # @param language_name [String,Symbol] name of a language in its native language
     # @return [String,Hash] added language name or a hash of added languages
     def available_locale(*args)
-      return @available_locales if args.empty?
+      return @available_languages.keys if args.empty?
       args.each do |arg|
-        if arg.is_a?(Hash)
-          arg.each_pair do |code, name|
-            if @available_locales.key?(code.to_s)
-              @available_locales[code.to_s] = name.to_s if name.present?
-            else
-              @available_locales[code.to_s] = name.to_s.presence
-            end
-          end
-        else
-          @available_filter.concat(Array(arg).map(&:to_s))
+        next if arg.blank?
+        unless arg.is_a?(Hash)
+          arg = Array(arg).each_with_object({}){ |k,o| o[k] = nil }
         end
-      end # args.each
+        arg.each_pair do |code, name|
+          name = name.to_s unless name.nil?
+          @available_languages[code.to_sym] = name
+        end
+      end
       nil
     end
     alias_method :available_locales,  :available_locale
     alias_method :available_language, :available_locale
-    alias_method :pick_locales,       :available_locale
-    alias_method :pick_locale,        :available_locale
 
-    # Gets available languages hash
-    def available_languages
-      I18n.available_locales.each_with_object({}) do |code, o|
-        o[code.to_s] = available_locales[code.to_s]
-      end
-    end
-
-    # Gets names of available languages.
-    def available_language_names
-      I18n.available_locales.map do |code|
-        available_locales[code.to_s].presence || code.to_s
+    # Gets duplicate of available languages hash.
+    def available_languages(internal = true)
+      return @available_languages.dup if internal
+      I18n.available_locales.each_with_object({}) do |l,o|
+        l = l.to_sym
+        o[l] = @available_languages[l]
       end
     end
 
     # Adds locale to available locales.
     # 
     # @return [nil]
-    def available_locales=(arg)
-      return available_locales(*arg) if arg.is_a?(Array)
+    def available_locale=(arg)
       available_locales(arg)
     end
+    alias_method :available_locales=, :available_locale=
 
     def rtl_languages=(languages)
-      @rtl_languages = languages
+      @rtl_languages = Array(languages)
     end
 
     def rtl_languages(languages = nil)
       return (self.rtl_languages = languages) unless languages.nil?
-      @rtl_languages ||= []
+      @rtl_languages
     end
 
     # Gets the array containing strings of available locale codes.
     # 
     # @return [Array<String>] available locale codes
     def available_locale_codes
-      available_locales.keys.map { |l| l.to_s }
+      available_locales.map { |l| l.to_s }
     end
 
-    # Removes lanuage from available languags hash.
+    # Removes lanuage from available languages hash.
     # 
     # @param locale_code [String,Symbol] locale code (e.g. +:pl+)
     # @return [String] deleted language name
     def delete_language(locale_code)
-      @available_locales.delete(locale_code.to_s)
+      @available_languages.delete(locale_code.to_sym)
     end
-    alias_method :delete_locale,  :delete_language
-    alias_method :del_language,   :delete_language
-    alias_method :del_locale,     :delete_language
+    alias_method :delete_locale, :delete_language
 
     # Loads locale configuration from YAML files.
     # 
@@ -148,64 +160,56 @@ class I18n::Init
       setup_available_locales
       setup_default_locale
       setup_rtl_locale
-      remove_unwanted_locales
-      fix_missing_locale_names
 
       super if defined?(super)
 
-      I18n.available_locales  = available_locales.keys
+      I18n.available_locales  = available_locales
       I18n.default_locale     = default_locale
-      I18n.locale             = available_locales.key?(locale.to_s) ? locale : default_locale
+      I18n.locale             = available_locales.include?(locale) ? locale : default_locale
     end
 
     # Lists available locales as a string.
     # 
     # @return []
-    def list_available_locales
-      lj = available_locales.keys.max_by(&:length).length
-      Hash[available_languages.sort].each_with_object([]) do |(c,n),o|
-        o << "- #{c.to_s.ljust(lj)} (#{n})"
+    def list_available_locales(internal = true)
+      src = internal ? available_locales : I18n.available_locales
+      lj = src.max_by(&:length).length
+      src.sort.each_with_object([]) do |c,o|
+        o << "- #{c.to_s.ljust(lj)} (#{resolve_code(c)})"
       end.join(",\n  ")
     end
 
     private
 
+    def normalize_available_locales(l)
+      unless l.is_a?(Hash)
+        l = Array(l).each_with_object({}){ |k,o| o[k] = nil }
+      end
+      l.each_with_object({}) do |(code, name), o|
+        name = name.to_s unless name.nil?
+        o[code.to_sym] = name
+      end
+    end
+
+    def merge_available_locales(src, title)
+      p_debug " - merging available locales from #{title}"
+      @merged_available_languages = normalize_available_locales(src).merge(@merged_available_languages)
+    end
+
     # Sets up available locales.
     def setup_available_locales
-      from_file = settings['available'] || {}
-      from_file.each_pair do |code, name|
-        code = code.to_s
-        if @available_locales.key?(code)
-          if @available_locales[code].blank? && name.present?
-            @available_locales[code] = name.to_s
-          end
-        else
-          @available_locales[code] = name.to_s
-        end
+      p_debug "setting up available locales"
+      from_framework  = @framework_conf[:available_locales] || []
+      from_file       = settings['available'] || []
+      merge_available_locales(from_framework, "framework")
+      merge_available_locales(from_file, "settings file")
+      merge_available_locales(available_languages, "block")
+      p_debug "fixing missing locale names"
+      @merged_available_languages.each_pair do |code, name|
+        name = resolve_code(code) if name.blank?
+        @available_languages[code] = name.to_s
       end
       nil
-    end
-
-    # Removes unwanted locales if filter is present.
-    def remove_unwanted_locales
-      if @available_filter.present?
-        @available_locales = @available_filter.each_with_object({}) do |code, o|
-          o[code] = @available_locales[code]
-        end
-      end
-      if @available_locales[@default_locale_code.to_s].blank?
-        @available_locales[@default_locale_code.to_s] = @default_locale_name
-      end
-    end
-
-    # Fixes missing locale names.
-    def fix_missing_locale_names
-      p_debug "fixing missing locale names"
-      @available_locales.each_pair do |code, name|
-        if name.blank?
-          @available_locales[code] = resolve_code(code)
-        end
-      end
     end
 
     # Sets up RTL locales.
@@ -222,27 +226,27 @@ class I18n::Init
       p_debug "setting up default locale"
       if @default_locale_code.present?
         p_debug " - got default locale code: #{@default_locale_code}"
-        @default_locale_name ||= @available_locales[@default_locale_code.to_s].presence
+        @default_locale_name ||= @available_languages[@default_locale_code].presence
         @default_locale_name ||= @default_locale_code.to_s
       else # default locale code is missing
         p_debug " - default locale code is missing"
         @default_locale_code   = settings['default'].presence
-        @default_locale_code &&= @default_locale_code.to_sym
+        @default_locale_code &&= @default_locale_code
         if @default_locale_code.present? # default locale code given in file
           p_debug " - got default locale code from configuration file: #{@default_locale_code}"
-          @default_locale_name ||=  @available_locales[@default_locale_code.to_s].presence
+          @default_locale_name ||=  @available_languages[@default_locale_code].presence
           @default_locale_name ||= @default_locale_code.to_s
         else # default locale not found in file and not given
           @default_locale_code ||= @framework_conf[:default_locale]
           if @default_locale_code.present?
             @default_locale_code = @default_locale_code.to_s.to_sym
             p_debug " - default locale found in framework configuration"
-            @default_locale_name ||= @available_locales[@default_locale_code.to_s].presence
+            @default_locale_name ||= @available_languages[@default_locale_code].presence
           else
             p_debug " - default locale code is missing (not found in file and not given)"
-            if @available_locales.present? && @available_locales.first.is_a?(Array) && @available_locales.first.count == 2
-              @default_locale_code = @available_locales.first[0]
-              @default_locale_name = @available_locales.first[1]
+            if @available_languages.present? && @available_languages.first.is_a?(Array) && @available_languages.first.count == 2
+              @default_locale_code = @available_languages.first[0]
+              @default_locale_name = @available_languages.first[1]
             end
             if @default_locale_code.blank?
               p_debug " - default locale code cannot be deduced, using defaults"
@@ -261,12 +265,19 @@ class I18n::Init
     # Resets buffers.
     def reset_buffers
       p_debug "resetting buffers"
-      @available_locales        = {}
-      @available_filter         = []
-      @rtl_languages            = []
-      @locale                   = nil
-      @default_locale_code      = nil
-      @default_locale_name      = nil
+      @available_languages  = {}
+      @available_filter     = []
+      @rtl_languages        = []
+      @locale               = nil
+      @default_locale_code  = nil
+      @default_locale_name  = nil
+      super if defined?(super)
+    end
+
+    def invalidate_caches
+      @merged_available_languages = {}
+    end
+
     # Gathers framework configuration for later use.
     def gather_framework_info
       p_debug "reading framework configuration"
