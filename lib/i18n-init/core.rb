@@ -7,6 +7,7 @@
 require 'singleton'
 
 require_relative './debug'
+require_relative './confblock'
 require_relative './paths'
 require_relative './settings'
 require_relative './resolver'
@@ -16,7 +17,8 @@ require_relative './backends'
 
 # This class handles basic settings of I18n.
 class I18n::Init
-  include Singleton  
+  include Singleton
+  include ConfBlock
   include Fallbacks
   include Locales
   include Resolver
@@ -25,8 +27,21 @@ class I18n::Init
   include Paths
   include Debug
 
-  # Known top-level objects that 
+  # Known top-level constants that indicate poular frameworks.
   KNOWN_FRAMEWORKS = [ :Rails, :Padrino, :Sinatra, :Merb ]
+
+  # Delegate methods to configuration block.
+  configuration_block_delegate  :framework, :environment, :add_backend,             :p_debug,
+                                :fallbacks_use_default!,  :fallbacks_use_default?,  :fallbacks_use_default=,
+                                :fallbacks_use_default,   :default_fallback,        :default_fallbacks,
+                                :default_fallback=,       :default_fallbacks=,      :fallback, :fallbacks, :fallback=,
+                                :fallbacks=,              :default_locale,          :default_locale=, :default_language,
+                                :language_name,           :locale=, :locale,        :available_locale, :available_locales,
+                                :available_locales=,      :available_locale=,       :available_locale_codes,
+                                :rtl_languages,           :rtl_languages=,          :delete_language, :delete_locale,
+                                :root_path,               :root_path=,              :config_file, :config_file=,
+                                :default_load_path,       :default_load_path=,      :bundled_settings_file,
+                                :resolve_code,            :resolve_name
 
   # Initializes instance and creates singleton methods that call
   # public instance methods of the same names.
@@ -42,10 +57,11 @@ class I18n::Init
   # Evaluates a block tapped to {I18n::Init} if block is given.
   # return [Init] self
   def config(&block)
-    block_given? or return self
+    @conf_block_used = true
+    block_given? or return conf_block
     p_debug "evaluating configuration block"
-    block.arity == 0 or return tap(&block)
-    instance_eval(&block)
+    block.arity == 0 or return conf_block.tap(&block)
+    conf_block.module_eval(&block)
   end
 
   # Initializes I18n Init.
@@ -154,14 +170,20 @@ Available fallbacks:
     @environment &&= @environment.to_s
   end
 
+  def configuration_block_used?
+    @conf_block_used
+  end
+
   private
 
   # Gets a list of backend modules.
   def backend_modules_list
     I18n.backend.class.included_modules.
-      map     { |m| m.to_s                      }.
-      select  { |m| m[0..12] == "I18n::Backend" }.
-      map     { |m| m.split(':').last           }.join(', ')
+      map     { |m| m.to_s                                }.
+      select  { |m| m[0..12] == "I18n::Backend"           }.
+      map     { |m| m.split(':').last                     }.
+      reject  { |m| ['Base','Implementation'].include?(m) }.
+      join(', ')
   end
 
   # Resets buffers.
@@ -172,6 +194,8 @@ Available fallbacks:
     @initialization_delayed = true
     @delayed_load_arg       = nil
     @environment            = nil
+    @framework_conf         = {}
+    @conf_block_used        = false
     super if defined?(super)
     invalidate_caches
     nil
@@ -180,7 +204,6 @@ Available fallbacks:
   # Invalidates cached settings based on configuration file contents.
   def invalidate_caches
     p_debug "invalidating caches"
-    @framework_conf = {}
     super if defined?(super)
     nil
   end
