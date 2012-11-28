@@ -161,8 +161,17 @@ Available fallbacks:
     case framework
     when :Rails
       @environment = Rails.env
+    when :Merb
+      @environment = Merb.environment
+    when :Padrino, :Sinatra
+      if framework == :Padrino && defined?(Padrino::Application.settings) &&
+         Padrino::Application.settings.respond_to?(:environment)
+        @environment = Padrino::Application.settings.environment
+      elsif defined?(Sinatra::Base.settings) && Sinatra::Base.settings.respond_to?(:environment)
+        @environment = Sinatra::Base.settings.environment
+      end
     end
-    @environment ||= ENV['ENV'].presence || ENV['ENVIRONMENT'].presence
+    @environment ||= ENV['RACK_ENV'].presence || ENV['ENV'].presence || ENV['ENVIRONMENT'].presence
     @environment ||= 'production'  if ENV.has_key?('production')
     @environment ||= 'development' if ENV.has_key?('development')
     @environment ||= 'test'        if ENV.has_key?('test')
