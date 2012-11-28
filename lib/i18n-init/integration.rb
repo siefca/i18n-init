@@ -11,7 +11,7 @@ module I18n
 
   extend Module.new {
     # Define methods that delegate to init object.
-    %w(init! debug! initialized? available_languages available_language_names rtl_languages).each do |method|
+    %w(init! debug! initialized? rtl_languages).each do |method|
       module_eval <<-DELEGATORS, __FILE__, __LINE__ + 1
         def #{method}
           init.#{method}
@@ -25,6 +25,18 @@ module I18n
 
     def default_language
       init.default_language(false)
+    end
+
+    def available_languages
+      init.available_languages(false)
+    end
+
+    def locale_to_language(code)
+      init.resolve_code(code)
+    end
+
+    def language_to_locale(name)
+      init.resolve_name(name)
     end
 
     # Basic settings object for I18n quick setup.
