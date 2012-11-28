@@ -267,6 +267,18 @@ class I18n::Init
       @locale                   = nil
       @default_locale_code      = nil
       @default_locale_name      = nil
+    # Gathers framework configuration for later use.
+    def gather_framework_info
+      p_debug "reading framework configuration"
+      case framework
+      when :Rails
+        if Rails.configuration.respond_to?(:i18n)
+          Rails.configuration.i18n.tap do |c|
+            @framework_conf[:default_locale]    = c.default_locale
+            @framework_conf[:available_locales] = c.available_locales
+          end
+        end
+      end
       super if defined?(super)
     end
 
