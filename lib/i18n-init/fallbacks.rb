@@ -23,9 +23,19 @@ class I18n::Init
     #   @return [Hash{Symbol => Array<Symbol>}] current fallbacks map
     def fallback(fallback_map = nil)
       return @fallbacks if fallback_map.nil?
-      @fallbacks.merge!(normalize(fallback_map))
+      @fallbacks.merge!(normalize_fallbacks(fallback_map))
     end
     alias_method :fallbacks, :fallback
+
+    # Adds fallback(s) to memorized fallbacks. If fallbacks for the given language exist
+    # it will replace them.
+    # 
+    # @param fallback_map [Hash{Symbol,String => Symbol,String,Array<Symbol,String>}] fallbacks map
+    # @return [Hash{Symbol => Array<Symbol>}] current fallbacks map
+    def fallback=(fallback_map)
+      fallback(fallback_map)
+    end
+    alias_method :fallbacks=, :fallback=
 
     # Sets or unsets the flag that causes +default_fallback_locale+
     # to be used as fallback(s) for any language.
@@ -126,6 +136,8 @@ class I18n::Init
         @default_fallback_locale = Array(code.to_s.to_sym)
       end
     end
+    alias_method :default_fallback=,  :default_fallback_locale=
+    alias_method :default_fallbacks=, :default_fallback_locale=
 
     # Loads locale configuration from YAML files.
     # 
@@ -135,6 +147,9 @@ class I18n::Init
       super if defined?(super)
     end
 
+    # Gets a string listing all available fallbacks.
+    # 
+    # @return [String] list of fallbacks.
     def list_fallbacks
       lj = fallbacks.keys.max_by(&:length).length
       fallbacks.keys.sort.each_with_object([]) do |f,o|
@@ -146,7 +161,7 @@ class I18n::Init
 
     # Read fallbacks from a configuration file.
     def fallbacks_from_file
-      @fallbacks_from_file ||= normalize(settings['fallbacks'] || {})
+      @fallbacks_from_file ||= normalize_fallbacks(settings['fallbacks'] || {})
     end
 
     # Read default fallbacks from a configuration file.
@@ -159,7 +174,7 @@ class I18n::Init
       fb = @framework_conf[:fallbacks]
       case framework
       when :Rails
-        return normalize(fb) if fb.is_a?(Hash)
+        return normalize_fallbacks(fb) if fb.is_a?(Hash)
       end
       {}
     end
@@ -174,7 +189,7 @@ class I18n::Init
       I18n.fallbacks.defaults
     end
 
-    def normalize(src = {})
+    def normalize_fallbacks(src = {})
       src.each_with_object({}) do |(k,v),o|
         o[k.to_sym] = Array(v).map{ |l| l.to_sym if l.present? }.compact
       end
@@ -239,14 +254,11 @@ class I18n::Init
 
     # Gathers framework configuration for later use.
     def gather_framework_info
+      p_debug "reading framework configuration"
       case framework
       when :Rails
         if Rails.configuration.respond_to?(:i18n)
-          Rails.configuration.i18n.tap do |c|
-            @framework_conf[:fallbacks]       = c.fallbacks
-            @framework_conf[:load_path]       = c.load_path
-            @framework_conf[:default_locale]  = c.default_locale
-          end
+          @framework_conf[:fallbacks] = Rails.configuration.i18n.fallbacks
         end
       end
       super if defined?(super)
