@@ -62,12 +62,9 @@ class I18n::Init
     end
     alias_method :load_path=, :default_load_path=
 
-    def bundled_settings_dir_realpath
-      Pathname(__FILE__).dirname.join('..', BUNDLED_SETTINGS_DIR).tap do |f|
-        return f.executable? ? f.realpath : f.cleanpath
-      end
-    end
-
+    # Gets the pathname of bundled settings file.
+    # 
+    # @return [Pathname] pathname
     def bundled_settings_file
       bundled_settings_dir_realpath.join(DEFAULT_CONFIG_FILE)
     end
@@ -83,13 +80,23 @@ class I18n::Init
 
     private
 
+    # Returns a path to the irectory containing bundled settings file.
+    def bundled_settings_dir_realpath
+      Pathname(__FILE__).dirname.join('..', BUNDLED_SETTINGS_DIR).tap do |f|
+        return f.executable? ? f.realpath : f.cleanpath
+      end
+    end
+
     # Guesses root path.
     def guess_root_path
       # Try framework-specific paths
       case framework
       when :Sinatra, :Padrino
-        if framework == :Padrino && Padrino.root.present?
-          return Pathname(Padrino.root)
+        if framework == :Padrino
+          return Pathname(Padrino.root) if Padrino.root.present?
+          if Padrino.respond_to?(:settings) && Padrino.settings.respond_to?(:root)
+            return Pathname(Padrino.settings.root)
+          end
         end
         if defined?(Sinatra::Base.settings)
           if Sinatra::Base.settings.respond_to?(:root)
