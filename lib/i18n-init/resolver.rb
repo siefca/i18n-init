@@ -15,7 +15,7 @@ class I18n::Init
     # @param [String,Symbol] locale code
     # @return [String] locale name
     def resolve_code(code)
-      code.blank? ? nil : (resolver[code.to_s].presence || code.to_s)
+      code.blank? ? nil : (resolver[code.to_sym].presence || code.to_s)
     end
 
     # Resolves name.
@@ -23,7 +23,7 @@ class I18n::Init
     # @param [String,Symbol] locale name
     # @return [String] locale code
     def resolve_name(name)
-      name.blank? ? nil : (resolver_rev[name.to_s].presence || name.to_s)
+      name.blank? ? nil : (resolver_rev[name.to_s].presence || name.to_sym)
     end
 
     private
@@ -33,12 +33,12 @@ class I18n::Init
       @resolver_cache ||= {}.tap do |cache|
         p_debug "loading resolver data"
         [].tap do |srcs|
-          srcs << (settings_bundled['available'] || {}) unless settings['i18n-init-bundled']
-          srcs << (settings['available'] || {})
-          srcs << available_locales
+          srcs << locale_mappings_from_file(settings_bundled) unless settings['i18n-init-bundled']
+          srcs << locale_mappings_from_file(settings)
+          srcs << available_languages
           srcs.each do |src|
             src.each_pair do |code, name|
-              cache[code.to_s] = name.to_s unless name.blank?
+              cache[code] = name unless name.blank?
             end
           end
         end
@@ -54,6 +54,18 @@ class I18n::Init
     def reset_resolver_caches
       @resolver_cache     = nil
       @resolver_cache_rev = nil
+    end
+
+    # Get locale mappings from settings file and return normalized version.
+    def locale_mappings_from_file(settings_file)
+      normalize_available_languages(settings_file['names'] || {})
+    end
+
+    # Normalizes available languages.
+    def normalize_available_languages(input)
+      input.each_with_object({}) do |(c,n), o|
+        o[c.to_sym] = n.to_s unless c.blank?
+      end
     end
 
     # Invalidates caches.
