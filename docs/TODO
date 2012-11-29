@@ -12,7 +12,8 @@
   - load_path               - ok, --
   - filter                  - ok, --
 
-- add ignore_settings_file!, ignore_bundled_settings!, ignore_framework_settings!
+- document ignore_settings_file!, ignore_bundled_settings!, ignore_framework_settings!
+
 - add some info about sources to info (e.g. bundled settings in use, framework settings in use, etc.)
 - finish README (note about all options, note about overriding, note about what variables contain)
 - rtl_languages - multiple args  
