@@ -43,7 +43,6 @@ class I18n::Init
 
     # Invalidates cached settings based on configuration file contents.
     def invalidate_caches
-      p_debug "invalidating caches"
       @settings = nil
       @settings_bundled = nil
       super if defined?(super)

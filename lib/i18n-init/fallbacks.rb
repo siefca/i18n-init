@@ -237,7 +237,6 @@ class I18n::Init
 
     # Resets buffers.
     def reset_buffers
-      p_debug "resetting buffers"
       @fallbacks_use_default    = true
       @default_fallback_locale  = nil
       @fallbacks                = {}
@@ -246,7 +245,6 @@ class I18n::Init
 
     # Invalidates cached settings based on configuration file contents.
     def invalidate_caches
-      p_debug "invalidating caches"
       @fallbacks_merged     = nil
       @fallbacks_from_file  = nil
       super if defined?(super)
@@ -254,7 +252,6 @@ class I18n::Init
 
     # Gathers framework configuration for later use.
     def gather_framework_info
-      p_debug "reading framework configuration"
       case framework
       when :Rails
         if Rails.configuration.respond_to?(:i18n)

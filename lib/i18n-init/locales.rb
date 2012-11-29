@@ -264,7 +264,6 @@ class I18n::Init
 
     # Resets buffers.
     def reset_buffers
-      p_debug "resetting buffers"
       @available_languages  = {}
       @available_filter     = []
       @rtl_languages        = []
@@ -274,13 +273,13 @@ class I18n::Init
       super if defined?(super)
     end
 
+    # Invalidates caches.
     def invalidate_caches
       @merged_available_languages = {}
     end
 
     # Gathers framework configuration for later use.
     def gather_framework_info
-      p_debug "reading framework configuration"
       case framework
       when :Rails
         if Rails.configuration.respond_to?(:i18n)

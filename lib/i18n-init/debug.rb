@@ -55,7 +55,6 @@ class I18n::Init
     # Resets buffers.
     def reset_buffers
       @debug ||= false
-      p_debug "resetting buffers"
       super if defined?(super)
     end
 

@@ -52,6 +52,7 @@ class I18n::Init
 
     # Resets internal caches.
     def reset_resolver_caches
+      p_debug "resetting resolver caches"
       @resolver_cache     = nil
       @resolver_cache_rev = nil
     end
@@ -70,7 +71,6 @@ class I18n::Init
 
     # Invalidates caches.
     def invalidate_caches
-      p_debug "invalidating caches"
       reset_resolver_caches
       super if defined?(super)
     end

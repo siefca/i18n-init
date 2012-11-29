@@ -231,15 +231,9 @@ class I18n::Init
 
     # Resets buffers.
     def reset_buffers
-      p_debug "resetting buffers"
       @default_load_path  = nil
       @config_file        = nil
       @root_path          = nil
-      super if defined?(super)
-    end
-
-    def invalidate_caches
-      p_debug "invalidating caches"
       super if defined?(super)
     end
 

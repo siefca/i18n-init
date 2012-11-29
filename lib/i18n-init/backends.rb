@@ -57,14 +57,12 @@ class I18n::Init
 
     # Resets buffers.
     def reset_buffers
-      p_debug "resetting buffers"
       @backends = {}
       super if defined?(super)
     end
 
     # Invalidates cached settings based on configuration file contents.
     def invalidate_caches
-      p_debug "invalidating caches"
       @backends_merged = nil
       @backends_from_file = nil
       super if defined?(super)
