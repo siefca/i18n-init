@@ -7,15 +7,19 @@
 # This class handles basic initial settings of I18n.
 class I18n::Init
 
-  # This module handles settings.
+  # This module handles reading settings from files and framework configurations.
   module Settings
 
-    # Loads settings if needed and returns settings hash.
+    # Loads settings from file and returns settings hash.
     # Uses environment section if environment is set and a corresponding section
     # is present in YAML file.
     # 
     # @return [Hash] settings
     def settings
+      if ignore_settings_file?
+        p_debug_once "ignoring settings file"
+        return {}
+      end
       @settings ||= yaml_load(config_file).tap do |s|
         if s.is_a?(Hash) && environment.present? && s.has_key?(environment)
           p_debug "switching to environment section: #{environment}"
@@ -28,6 +32,10 @@ class I18n::Init
     # 
     # @return [Hash] settings
     def settings_bundled
+      if ignore_bundled_settings?
+        p_debug_once "ignoring bundled settings"
+        return {}
+      end
       return @settings_bundled unless @settings_bundled.blank?
       @settings_bundled = yaml_load(bundled_settings_file)
     end
@@ -39,6 +47,76 @@ class I18n::Init
       end
       @framework_conf ||= {}
     end
+
+    def ignore_settings_file=(v)
+      @ignore_settings_file = !!v
+    end
+
+    def ignore_bundled_settings=(v)
+      @ignore_bundled_settings = !!v
+    end
+
+    def ignore_framework_settings=(v)
+      @ignore_framework_settings = !!v
+    end
+
+    def ignore_settings_file?
+      @ignore_settings_file
+    end
+
+    def ignore_bundled_settings?
+      @ignore_bundled_settings
+    end
+
+    def ignore_framework_settings?
+      @ignore_framework_settings
+    end
+
+    def ignore_settings_file!
+      self.ignore_settings_file = true
+    end
+
+    def ignore_bundled_settings!
+      self.ignore_bundled_settings = true
+    end
+
+    def ignore_framework_settings!
+      self.ignore_framework_settings = true
+    end
+
+    def ignore_settings_file(*args)
+      case args.count
+      when 0
+        ignore_settings_file?
+      when 1
+        self.ignore_settings_file = args.first
+      else
+        raise ArgumentError, "wrong number of arguments (#{args.count} for 1)"
+      end
+    end
+
+    def ignore_bundled_settings(*args)
+      case args.count
+      when 0
+        ignore_bundled_settings?
+      when 1
+        self.ignore_bundled_settings = args.first
+      else
+        raise ArgumentError, "wrong number of arguments (#{args.count} for 1)"
+      end
+    end
+
+    def ignore_framework_settings(*args)
+      case args.count
+      when 0
+        ignore_framework_settings?
+      when 1
+        self.ignore_framework_settings = args.first
+      else
+        raise ArgumentError, "wrong number of arguments (#{args.count} for 1)"
+      end
+    end
+
     private
 
     # Loads settings from YAML file.
@@ -52,6 +130,15 @@ class I18n::Init
     def invalidate_caches
       @settings = nil
       @settings_bundled = nil
+      super if defined?(super)
+    end
+
+    # Resets buffers.
+    def reset_buffers
+      @ignore_settings_file       = false
+      @ignore_bundled_settings    = false
+      @ignore_framework_settings  = false
+      @framework_conf             = {}
       super if defined?(super)
     end
 
