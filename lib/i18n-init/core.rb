@@ -31,17 +31,19 @@ class I18n::Init
   KNOWN_FRAMEWORKS = [ :Rails, :Padrino, :Sinatra, :Merb ]
 
   # Delegate methods to configuration block.
-  configuration_block_delegate  :framework, :environment, :add_backend,             :p_debug,
-                                :fallbacks_use_default!,  :fallbacks_use_default?,  :fallbacks_use_default=,
-                                :fallbacks_use_default,   :default_fallback,        :default_fallbacks,
-                                :default_fallback=,       :default_fallbacks=,      :fallback, :fallbacks, :fallback=,
-                                :fallbacks=,              :default_locale,          :default_locale=, :default_language,
-                                :language_name,           :locale=, :locale,        :available_locale, :available_locales,
-                                :available_locales=,      :available_locale=,       :available_locale_codes,
-                                :rtl_languages,           :rtl_languages=,          :delete_language, :delete_locale,
-                                :root_path,               :root_path=,              :config_file, :config_file=,
-                                :default_load_path,       :default_load_path=,      :bundled_settings_file,
-                                :resolve_code,            :resolve_name
+  configuration_block_delegate  :p_debug, :p_debug_once, :framework, :environment, :initialized?, :bundled_settings_file,
+                                :add_backend, :default_locale, :default_locale=, :default_language, :language_name,
+                                :locale=, :locale, :available_locale, :available_locales, :available_locales=,
+                                :available_locale=, :available_locale_codes, :delete_language, :delete_locale,
+                                :fallback, :fallbacks, :fallback=, :fallbacks=, :fallbacks_use_default, 
+                                :fallbacks_use_default!, :fallbacks_use_default?, :fallbacks_use_default=,
+                                :default_fallback=, :default_fallbacks=, :default_fallback, :default_fallbacks,
+                                :rtl_languages, :rtl_languages=, :root_path, :root_path=, :config_file, :config_file=,
+                                :default_load_path,     :default_load_path=,        :resolve_code, :resolve_name,
+                                :ignore_settings_file!, :ignore_bundled_settings!,  :ignore_framework_settings!,
+                                :ignore_settings_file?, :ignore_bundled_settings?,  :ignore_framework_settings?,
+                                :ignore_settings_file=, :ignore_bundled_settings=,  :ignore_framework_settings=,
+                                :ignore_settings_file,  :ignore_bundled_settings,   :ignore_framework_settings
 
   # Initializes instance and creates singleton methods that call
   # public instance methods of the same names.
@@ -58,10 +60,10 @@ class I18n::Init
   # return [Init] self
   def config(&block)
     @conf_block_used = true
-    block_given? or return conf_block
+    block_given? or return configuration_block
     p_debug "evaluating configuration block"
-    block.arity == 0 or return conf_block.tap(&block)
-    conf_block.module_eval(&block)
+    block.arity == 0 or return configuration_block.tap(&block)
+    configuration_block.module_eval(&block)
   end
 
   # Initializes I18n Init.
@@ -115,11 +117,15 @@ class I18n::Init
   end
 
   # Gets some info about I18n settings.
+  # 
+  # @return [String] information about I18n settings.
   def info
     i18n_info
   end
 
   # Prints info.
+  # 
+  # @return [void]
   def print_info
     puts info
   end
@@ -143,14 +149,18 @@ class I18n::Init
         @environment = Sinatra::Base.settings.environment
       end
     end
+    @environment   = @environment.presence
     @environment ||= ENV['RACK_ENV'].presence || ENV['ENV'].presence || ENV['ENVIRONMENT'].presence
     @environment ||= 'production'  if ENV.has_key?('production')
     @environment ||= 'development' if ENV.has_key?('development')
     @environment ||= 'test'        if ENV.has_key?('test')
     @environment   = @environment.presence
-    @environment &&= @environment.to_s
+    @environment &&= @environment.to_s.downcase
   end
 
+  # Tells if configuration block has been used.
+  # 
+  # @return [Boolean] +true+ if used, +false+ otherwise
   def configuration_block_used?
     @conf_block_used
   end
@@ -175,7 +185,6 @@ class I18n::Init
     @initialization_delayed = true
     @delayed_load_arg       = nil
     @environment            = nil
-    @framework_conf         = {}
     @conf_block_used        = false
     super if defined?(super)
     invalidate_caches

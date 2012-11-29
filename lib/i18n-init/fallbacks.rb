@@ -77,7 +77,7 @@ class I18n::Init
       when 0
         fallbacks_use_default?
       when 1
-        self.fallbacks_use_default(args.first)
+        self.fallbacks_use_default = args.first
       else
         raise ArgumentError, "wrong number of arguments (#{args.count} for 1)"
       end
@@ -171,7 +171,7 @@ class I18n::Init
 
     # Read fallbacks from a framework settings.
     def fallbacks_from_framework
-      fb = @framework_conf[:fallbacks]
+      fb = settings_framework[:fallbacks]
       case framework
       when :Rails
         return normalize_fallbacks(fb) if fb.is_a?(Hash)
@@ -181,7 +181,7 @@ class I18n::Init
 
     # Read default fallbacks from a configuration file.
     def default_fallbacks_from_framework
-      fb = @framework_conf[:fallbacks]
+      fb = settings_framework[:fallbacks]
       case framework
       when :Rails
         return (fb.blank? || fb == true || fb.is_a?(Hash)) ? [] : Array(fb)

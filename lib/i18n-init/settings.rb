@@ -32,6 +32,13 @@ class I18n::Init
       @settings_bundled = yaml_load(bundled_settings_file)
     end
 
+    def settings_framework
+      if ignore_framework_settings?
+        p_debug_once "ignoring framework settings"
+        return {}
+      end
+      @framework_conf ||= {}
+    end
     private
 
     # Loads settings from YAML file.

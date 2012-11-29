@@ -199,7 +199,7 @@ class I18n::Init
     # Sets up available locales.
     def setup_available_locales
       p_debug "setting up available locales"
-      from_framework  = @framework_conf[:available_locales] || []
+      from_framework  = settings_framework[:available_locales] || []
       from_file       = settings['available'] || []
       merge_available_locales(from_framework, "framework")
       merge_available_locales(from_file, "settings file")
@@ -237,7 +237,7 @@ class I18n::Init
           @default_locale_name ||=  @available_languages[@default_locale_code].presence
           @default_locale_name ||= @default_locale_code.to_s
         else # default locale not found in file and not given
-          @default_locale_code ||= @framework_conf[:default_locale]
+          @default_locale_code ||= settings_framework[:default_locale]
           if @default_locale_code.present?
             @default_locale_code = @default_locale_code.to_s.to_sym
             p_debug " - default locale found in framework configuration"
