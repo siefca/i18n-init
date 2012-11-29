@@ -14,14 +14,29 @@ class I18n::Init
     # 
     # @return [nil]
     def load!(cfile = nil)
-      debug! if Rails.env.development? && ENV['I18N_DEBUG']
+      debug! if environment == 'development' && ENV['I18N_DEBUG']
       super if defined?(super)
     end
 
     # Prints out debug message to stderr if debug mode is enabled.
+    # 
+    # @param messages [Array<String>] messages
+    # @return [nil]
     def p_debug(*messages)
       messages.each { |m| STDERR.puts("I18n Init #{(calling_owner(3)+':').ljust(12)} #{m}") } if @debug
       nil
+    end
+
+    # Prints out debug message to stderr if debug mode is enabled and does that once.
+    # 
+    # @param messages [Array<String>] messages
+    # @return [nil]
+    def p_debug_once(*messages)
+      return nil unless @debug
+      marker = caller[1..5].join.to_sym
+      return nil if @ign_debug_msg[marker]
+      @ign_debug_msg[marker] = true
+      p_debug(*messages)
     end
 
     # Enables debugging of translation lookups and I18n initialization.
@@ -55,6 +70,7 @@ class I18n::Init
     # Resets buffers.
     def reset_buffers
       @debug ||= false
+      @ign_debug_msg = {}
       super if defined?(super)
     end
 
