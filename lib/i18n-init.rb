@@ -4,6 +4,7 @@
 
 require 'i18n'
 require 'pathname'
+require 'configuration-blocks'
 
 require 'i18n-init/version'
 require 'i18n-init/core'

@@ -7,7 +7,6 @@
 require 'singleton'
 
 require_relative './debug'
-require_relative './confblock'
 require_relative './paths'
 require_relative './settings'
 require_relative './resolver'
@@ -18,7 +17,7 @@ require_relative './backends'
 # This class handles basic settings of I18n.
 class I18n::Init
   include Singleton
-  include ConfBlock
+  include ConfigurationBlocks
   include Fallbacks
   include Locales
   include Resolver
@@ -31,7 +30,7 @@ class I18n::Init
   KNOWN_FRAMEWORKS = [ :Rails, :Padrino, :Sinatra, :Merb ]
 
   # Delegate methods to configuration block.
-  configuration_block_delegate  :p_debug, :p_debug_once, :framework, :environment, :initialized?, :bundled_settings_file,
+  configuration_methods         :p_debug, :p_debug_once, :framework, :environment, :initialized?, :bundled_settings_file,
                                 :add_backend, :default_locale, :default_locale=, :default_language, :language_name,
                                 :locale=, :locale, :available_locale, :available_locales, :available_locales=,
                                 :available_locale=, :available_locale_codes, :delete_language, :delete_locale,
@@ -59,11 +58,9 @@ class I18n::Init
   # Evaluates a block tapped to {I18n::Init} if block is given.
   # return [Init] self
   def config(&block)
-    @conf_block_used = true
-    block_given? or return configuration_block
     p_debug "evaluating configuration block"
-    block.arity == 0 or return configuration_block.tap(&block)
-    configuration_block.module_eval(&block)
+    @conf_block_used = true
+    configuration_block(&block)
   end
 
   # Initializes I18n Init.

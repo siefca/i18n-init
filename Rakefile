@@ -42,14 +42,15 @@ Hoe.spec 'i18n-init' do
   self.readme_file     = 'README.md'
   self.history_file    = 'docs/HISTORY'
 
-  extra_deps          << ['i18n', '>= 0.4.1']
+  extra_deps          << ['i18n', '>= 0.4.1']                 <<
+                         ['configuration-blocks', '>= 1.0.0']
 
-  extra_dev_deps      << ['rspec',            '>= 2.6.0']   <<
-                         ['yard',             '>= 0.8.2']   <<
-                         ['rdoc',             '>= 3.8.0']   <<
-                         ['redcarpet',        '>= 2.1.0']   <<
-                         ['bundler',          '>= 1.0.10']  <<
-                         ['hoe-bundler',      '>= 1.1.0']   <<
+  extra_dev_deps      << ['rspec',            '>= 2.6.0']     <<
+                         ['yard',             '>= 0.8.2']     <<
+                         ['rdoc',             '>= 3.8.0']     <<
+                         ['redcarpet',        '>= 2.1.0']     <<
+                         ['bundler',          '>= 1.0.10']    <<
+                         ['hoe-bundler',      '>= 1.1.0']     <<
                          ['hoe-gemspec',      '>= 1.0.0']
 
   unless extra_dev_deps.flatten.include?('hoe-yard')
