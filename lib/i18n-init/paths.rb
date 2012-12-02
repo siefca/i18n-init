@@ -71,12 +71,21 @@ class I18n::Init
     # 
     # @return [Pathname] pathname
     def bundled_settings_file
-      bundled_settings_dir_realpath.join(DEFAULT_CONFIG_FILE)
+      bundled_settings_dir_realpath.join(bundled_settings_filename)
     end
 
     # Returns a path to the irectory containing bundled settings file.
+    # 
+    # @return [Pathname] pathname
     def bundled_settings_dir
       Pathname(__FILE__).dirname.join('..', BUNDLED_SETTINGS_DIR)
+    end
+
+    # Returns a basename of a bundled settings file.
+    # 
+    # @return [Pathname] pathname
+    def bundled_settings_filename
+      DEFAULT_CONFIG_FILE
     end
 
     # Loads locale configuration from YAML files.
@@ -138,7 +147,7 @@ class I18n::Init
 
     # Guesses configuration file path.
     def guess_config_file
-      fname = DEFAULT_CONFIG_FILE
+      fname = bundled_settings_filename
       # Try framework-specific paths
       case framework
       when :Padrino, :Sinatra
