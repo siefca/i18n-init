@@ -16,7 +16,6 @@ i18n-init.gemspec
 init.rb
 lib/i18n-init.rb
 lib/i18n-init/backends.rb
-lib/i18n-init/confblock.rb
 lib/i18n-init/core.rb
 lib/i18n-init/debug.rb
 lib/i18n-init/fallbacks.rb
