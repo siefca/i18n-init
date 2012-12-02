@@ -14,6 +14,7 @@ docs/rdoc.css
 docs/yard-tpl/default/fulldoc/html/css/common.css
 i18n-init.gemspec
 init.rb
+lib/generators/i18n-init/install/install_generator.rb
 lib/i18n-init.rb
 lib/i18n-init/backends.rb
 lib/i18n-init/core.rb
@@ -27,4 +28,5 @@ lib/i18n-init/railtie.rb
 lib/i18n-init/resolver.rb
 lib/i18n-init/settings.rb
 lib/i18n-init/version.rb
+lib/skel/initializer.rb
 lib/skel/locale.yml

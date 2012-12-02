@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = "i18n-init"
-  s.version = "1.0.0.20121202032046"
+  s.version = "1.0.0.20121202185856"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Pawe\u{142} Wilk"]
@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.description = "Easy way of initializing locales for Rails, Merb, Sinatra and others."
   s.email = ["pw@gnu.org"]
   s.extra_rdoc_files = ["Manifest.txt"]
-  s.files = [".rspec", ".yardopts", "ChangeLog", "LGPL-LICENSE", "Manifest.txt", "README.md", "Rakefile", "docs/COPYING", "docs/HISTORY", "docs/LEGAL", "docs/LGPL-LICENSE", "docs/TODO", "docs/rdoc.css", "docs/yard-tpl/default/fulldoc/html/css/common.css", "i18n-init.gemspec", "init.rb", "lib/i18n-init.rb", "lib/i18n-init/backends.rb", "lib/i18n-init/confblock.rb", "lib/i18n-init/core.rb", "lib/i18n-init/debug.rb", "lib/i18n-init/fallbacks.rb", "lib/i18n-init/integration.rb", "lib/i18n-init/locales.rb", "lib/i18n-init/patches.rb", "lib/i18n-init/paths.rb", "lib/i18n-init/railtie.rb", "lib/i18n-init/resolver.rb", "lib/i18n-init/settings.rb", "lib/i18n-init/version.rb", "lib/skel/locale.yml"]
+  s.files = [".rspec", ".yardopts", "ChangeLog", "LGPL-LICENSE", "Manifest.txt", "README.md", "Rakefile", "docs/COPYING", "docs/HISTORY", "docs/LEGAL", "docs/LGPL-LICENSE", "docs/TODO", "docs/rdoc.css", "docs/yard-tpl/default/fulldoc/html/css/common.css", "i18n-init.gemspec", "init.rb", "lib/generators/i18n-init/install/install_generator.rb", "lib/i18n-init.rb", "lib/i18n-init/backends.rb", "lib/i18n-init/core.rb", "lib/i18n-init/debug.rb", "lib/i18n-init/fallbacks.rb", "lib/i18n-init/integration.rb", "lib/i18n-init/locales.rb", "lib/i18n-init/patches.rb", "lib/i18n-init/paths.rb", "lib/i18n-init/railtie.rb", "lib/i18n-init/resolver.rb", "lib/i18n-init/settings.rb", "lib/i18n-init/version.rb", "lib/skel/initializer.rb", "lib/skel/locale.yml"]
   s.homepage = "https://rubygems.org/gems/i18n-init/"
   s.rdoc_options = ["--title", "I18n::Init Documentation", "--quiet"]
   s.require_paths = ["lib"]
