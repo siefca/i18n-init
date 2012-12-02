@@ -9,6 +9,12 @@ class I18n::Init
 
   # This module handles reading settings from files and framework configurations.
   module Settings
+    include ConfigurationBlocks
+
+    configuration_methods :ignore_settings_file!, :ignore_bundled_settings!,  :ignore_framework_settings!,
+                          :ignore_settings_file?, :ignore_bundled_settings?,  :ignore_framework_settings?,
+                          :ignore_settings_file=, :ignore_bundled_settings=,  :ignore_framework_settings=,
+                          :ignore_settings_file,  :ignore_bundled_settings,   :ignore_framework_settings
 
     # Loads settings from file and returns settings hash.
     # Uses environment section if environment is set and a corresponding section
@@ -40,6 +46,9 @@ class I18n::Init
       @settings_bundled = yaml_load(bundled_settings_file)
     end
 
+    # Gets memorized I18n settings obtained from framework configuration.
+    # 
+    # @return [Hash] settings
     def settings_framework
       if ignore_framework_settings?
         p_debug_once "ignoring framework settings"
@@ -48,42 +57,79 @@ class I18n::Init
       @framework_conf ||= {}
     end
 
+    # Sets a flag that if +true+ causes settings file to be ignored.
+    # 
+    # @param v [Boolean] flag status
+    # @return [Boolean] current status
     def ignore_settings_file=(v)
       @ignore_settings_file = !!v
     end
 
+    # Sets a flag that if +true+ causes bundled settings file to be ignored.
+    # 
+    # @param v [Boolean] flag status
+    # @return [Boolean] current status
     def ignore_bundled_settings=(v)
       @ignore_bundled_settings = !!v
     end
 
+    # Sets a flag that if +true+ causes framework settings to be ignored.
+    # 
+    # @param v [Boolean] flag status
+    # @return [Boolean] current status
     def ignore_framework_settings=(v)
       @ignore_framework_settings = !!v
     end
 
+    # Tests if settings file is ignored.
+    # 
+    # @return [Boolean] +true+ if ignored, +false+ otherwise
     def ignore_settings_file?
       @ignore_settings_file
     end
 
+    # Tests if budled settings file is ignored.
+    # 
+    # @return [Boolean] +true+ if ignored, +false+ otherwise
     def ignore_bundled_settings?
       @ignore_bundled_settings
     end
 
+    # Tests if framework settings are ignored.
+    # 
+    # @return [Boolean] +true+ if ignored, +false+ otherwise
     def ignore_framework_settings?
       @ignore_framework_settings
     end
 
+    # Sets a flag that causes settings from file to be ignored.
+    # 
+    # @return [Boolean] +true+
     def ignore_settings_file!
       self.ignore_settings_file = true
     end
 
+    # Sets a flag that causes settings from bundled file to be ignored.
+    # 
+    # @return [Boolean] +true+
     def ignore_bundled_settings!
       self.ignore_bundled_settings = true
     end
 
+    # Sets a flag that causes framework settings to be ignored.
+    # 
+    # @return [Boolean] +true+
     def ignore_framework_settings!
       self.ignore_framework_settings = true
     end
 
+    # @override ignore_settings_file
+    #   Gets current status of settings file ignorance flag.
+    #   @return [Boolean] +true+ if settings from file are ignored, +false+ otherwise
+    # @override ignore_settings_file(v)
+    #   Sets a flag that causes settings read from file to be ignored.
+    #   @param v [Boolean] flag status
+    #   @return [Boolean] current flag status
     def ignore_settings_file(*args)
       case args.count
       when 0
@@ -95,6 +141,13 @@ class I18n::Init
       end
     end
 
+    # @override ignore_bundled_settings
+    #   Gets current status of bundled settings ignorance flag.
+    #   @return [Boolean] +true+ if settings from bundled file are ignored, +false+ otherwise
+    # @override ignore_bundled_settings(v)
+    #   Sets a flag that causes bundled settings to be ignored.
+    #   @param v [Boolean] flag status
+    #   @return [Boolean] current flag status
     def ignore_bundled_settings(*args)
       case args.count
       when 0
@@ -106,6 +159,13 @@ class I18n::Init
       end
     end
 
+    # @override ignore_framework_settings
+    #   Gets current status of framework settings ignorance flag.
+    #   @return [Boolean] +true+ if settings from framework file are ignored, +false+ otherwise
+    # @override ignore_framework_settings(v)
+    #   Sets a flag that causes framework settings to be ignored.
+    #   @param v [Boolean] flag status
+    #   @return [Boolean] current flag status
     def ignore_framework_settings(*args)
       case args.count
       when 0

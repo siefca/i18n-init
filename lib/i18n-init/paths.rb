@@ -9,9 +9,14 @@ class I18n::Init
 
   # This module handles pathnames.
   module Paths
+    include ConfigurationBlocks
 
     DEFAULT_CONFIG_FILE   = 'locale.yml'
     BUNDLED_SETTINGS_DIR  = 'skel'
+
+    configuration_methods :root_path, :root_path=, :config_file, :config_file=,
+                          :default_load_path, :default_load_path=,
+                          :bundled_settings_file, :bundled_settings_dir
 
     # Returns framework's root path.
     # 
@@ -69,6 +74,11 @@ class I18n::Init
       bundled_settings_dir_realpath.join(DEFAULT_CONFIG_FILE)
     end
 
+    # Returns a path to the irectory containing bundled settings file.
+    def bundled_settings_dir
+      Pathname(__FILE__).dirname.join('..', BUNDLED_SETTINGS_DIR)
+    end
+
     # Loads locale configuration from YAML files.
     # 
     # @return [nil]
@@ -82,7 +92,7 @@ class I18n::Init
 
     # Returns a path to the irectory containing bundled settings file.
     def bundled_settings_dir_realpath
-      Pathname(__FILE__).dirname.join('..', BUNDLED_SETTINGS_DIR).tap do |f|
+      bundled_settings_dir.tap do |f|
         return f.executable? ? f.realpath : f.cleanpath
       end
     end

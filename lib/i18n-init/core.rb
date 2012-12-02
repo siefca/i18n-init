@@ -30,19 +30,7 @@ class I18n::Init
   KNOWN_FRAMEWORKS = [ :Rails, :Padrino, :Sinatra, :Merb ]
 
   # Delegate methods to configuration block.
-  configuration_methods         :p_debug, :p_debug_once, :framework, :environment, :initialized?, :bundled_settings_file,
-                                :add_backend, :default_locale, :default_locale=, :default_language, :language_name,
-                                :locale=, :locale, :available_locale, :available_locales, :available_locales=,
-                                :available_locale=, :available_locale_codes, :delete_language, :delete_locale,
-                                :fallback, :fallbacks, :fallback=, :fallbacks=, :fallbacks_use_default, 
-                                :fallbacks_use_default!, :fallbacks_use_default?, :fallbacks_use_default=,
-                                :default_fallback=, :default_fallbacks=, :default_fallback, :default_fallbacks,
-                                :rtl_languages, :rtl_languages=, :root_path, :root_path=, :config_file, :config_file=,
-                                :default_load_path,     :default_load_path=,        :resolve_code, :resolve_name,
-                                :ignore_settings_file!, :ignore_bundled_settings!,  :ignore_framework_settings!,
-                                :ignore_settings_file?, :ignore_bundled_settings?,  :ignore_framework_settings?,
-                                :ignore_settings_file=, :ignore_bundled_settings=,  :ignore_framework_settings=,
-                                :ignore_settings_file,  :ignore_bundled_settings,   :ignore_framework_settings
+  configuration_methods :framework, :environment, :initialized?
 
   # Initializes instance and creates singleton methods that call
   # public instance methods of the same names.

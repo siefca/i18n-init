@@ -9,6 +9,9 @@ class I18n::Init
 
   # This module handles backends.
   module Backends
+    include ConfigurationBlocks
+
+    configuration_methods :add_backend, :add_backend=, :new_backend, :new_backend=
 
     # Includes backend of a given name to simple backend.
     # 

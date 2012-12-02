@@ -9,9 +9,15 @@ class I18n::Init
 
   # This module handles locales.
   module Locales
+    include ConfigurationBlocks
 
     DEFAULT_LOCALE_RESCUE       = :en
     DEFAULT_LOCALE_NAME_RESCUE  = 'English'
+
+    configuration_methods :locale=, :locale, :available_locale, :available_locales, :available_locales=,
+                          :available_locale=, :available_locale_codes, :delete_language, :delete_locale,
+                          :default_locale, :default_locale=, :default_language, :language_name,
+                          :rtl_languages, :rtl_languages=
 
     # @override default_locale
     #   Gets the default locale.

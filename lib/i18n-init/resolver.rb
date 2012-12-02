@@ -9,6 +9,9 @@ class I18n::Init
 
   # This module contains methods used to resolve locale names and locale codes.
   module Resolver
+    include ConfigurationBlocks
+
+    configuration_methods :resolve_code, :resolve_name
 
     # Resolves locale code.
     # 

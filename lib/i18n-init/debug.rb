@@ -9,6 +9,9 @@ class I18n::Init
 
   # This module handles debugging.
   module Debug
+    include ConfigurationBlocks
+
+    configuration_methods :p_debug, :p_debug_once
 
     # Initializes I18n Init.
     # 

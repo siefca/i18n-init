@@ -9,6 +9,11 @@ class I18n::Init
 
   # This module handles fallbacks.
   module Fallbacks
+    include ConfigurationBlocks
+
+    configuration_methods :fallback, :fallbacks, :fallback=, :fallbacks=, :fallbacks_use_default, 
+                          :fallbacks_use_default!, :fallbacks_use_default?, :fallbacks_use_default=,
+                          :default_fallback=, :default_fallbacks=, :default_fallback, :default_fallbacks
 
     # @override fallback
     #   Returns known fallbacks.
