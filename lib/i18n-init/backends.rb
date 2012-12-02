@@ -54,8 +54,9 @@ class I18n::Init
     def backends_from_file
       @backends_from_file ||= Array(settings['backends']).uniq.each_with_object({}) do |b_name, o|
         b_name = b_name.to_s
+        b_name = b_name[0].upcase + b_name[1..-1]
         o[b_name] = I18n::Backend.const_get(b_name)
-      end 
+      end
     end
 
     # Resets buffers.
