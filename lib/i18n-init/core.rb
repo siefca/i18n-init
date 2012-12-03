@@ -196,10 +196,8 @@ I18n info
 
 I18n is #{initialized? ? "initialized" : "not initialized"}. Framework is #{framework}. Environment is #{environment || 'not set'}.
 
-Configuration file:     #{config_file}
-Bundled settings file:  #{bundled_settings_file}
-
 Sources of settings: #{settings_info}
+Used configuration file: #{config_file}
 
 Main backend:  #{I18n.backend.class.name}
 Used backends: #{backend_modules_list}

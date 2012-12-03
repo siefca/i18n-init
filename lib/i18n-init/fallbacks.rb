@@ -159,7 +159,13 @@ class I18n::Init
       return "- (disabled)" unless defined?(I18n.fallbacks)
       lj = fallbacks.keys.max_by(&:length).length
       fallbacks.keys.sort.each_with_object([]) do |f,o|
-        o << "- #{f.to_s.ljust(lj)} -> #{I18n.fallbacks[f].join(' -> ')}"
+        I18n.fallbacks[f].tap do |flist|
+          if flist.present?
+            flist = Array(flist)
+            flist.shift if flist.first.to_s == f.to_s
+            o << "- #{f.to_s.ljust(lj)} -> #{flist.join(' -> ')}"
+          end
+        end
       end.join(",\n  ")
     end
 

@@ -178,6 +178,16 @@ class I18n::Init
       end
     end
 
+    # Prints out the contents of bundled settings file.
+    def print_example_settings
+      File.open(bundled_settings_file) do |f|
+        puts f.read.
+         gsub(%r|# Marker that tells the engine that this file is bundled with the .*|, '').
+         gsub(%r|i18n-init-bundled: true|, '')
+      end
+      nil
+    end
+
     private
 
     # Loads settings from YAML file.
@@ -220,12 +230,8 @@ class I18n::Init
         end
         unless ignore_settings_file? || config_file.blank?
           rr = ""
-          rr << config_file.basename.to_s
-          if settings.blank?
-            rr << " (empty)"
-          elsif settings['i18n-init-bundled']
-            rr << " (bundled)"
-          end
+          rr << (settings['i18n-init-bundled'] ? "bundled configuration" : config_file.basename.to_s)
+          rr << " (empty)" if settings.blank?
           r << rr
         end
         if configuration_block_used?
