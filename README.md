@@ -210,6 +210,20 @@ Installation
 gem install i18n-init
 ```
 
+Rails integration
+-----------------
+
+If you are using Rails then in your application directory:
+
+```ruby
+rails g i18n_init:install
+```
+
+After that customize contents of:
+
+  * `config/locale.yml`
+  * `config/initializers/locale.rb` (editing not needed in most cases)
+
 Specs
 -----
 

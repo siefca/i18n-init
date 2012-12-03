@@ -11,9 +11,7 @@
   
   - load_path               - ok, --
   - filter                  - ok, --
-.
 
-- add some info about sources to info (e.g. bundled settings in use, framework settings in use, etc.)
 - finish README (note about all options, note about overriding, note about what variables contain)
 - rtl_languages - multiple args  
 - add generator
