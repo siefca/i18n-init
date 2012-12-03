@@ -15,13 +15,8 @@ It's for relax and aesthetics.
 
 I18n Init allows you to quickly initialize locale settings in popular frameworks
 (Rails, Merb, Sinatra, Padrino) or in your own program. No big initializer,
-no constants in your code. Just create translations and common settings
-and initialize I18n.
-
-Why?
-----
-
-To speed up and automate things.
+no constants in your code, no arrays of languages and locale names. The whole
+configuration is in `locale.yml` settings file.
 
 What?
 -----
@@ -32,53 +27,69 @@ I18n Init is able to set up and provide the following information:
 * languages with reversed writing order (right-to-left)
 * default locale
 * locale fallbacks
+* default locale fallbacks
 * pathname of default directory containing translation files
 
 Conventions
 -----------
 
-To work properly I18n Init needs a configuration file (`locale.yml`) and an initialization method call.
-It will look for a configuration file in the standard location of your framework and in other locations
-if the file cannot be found there. If that will fail it will load bundled `locale.yml` containing many
-languages marked as available and some default fallbacks.
+To work properly I18n Init needs a configuration file (`locale.yml`). It will look for it
+in a standard location of your framework and in other known locations. If the file cannot
+be found then the bundled settings will be loaded (containing huge defaults).
 
 I18n Init is designed to nicely initialize things, not to change them at runtime.
 That's why there are two phases of work:
 
-1. **configuration** (uses block passed to `I18n.init`)
- 
-2. **initialization** (invoked by `I18n.init!`)
-  * loads settings from `locale.yml` or other configuration file (if exists)
-  * loads settings from configuration block given before
-  * discovers available locales, default locale and fallbacks 
-  * loads translations using the default translations directory of your framework or the given directory
-  * configures fallbacks (if fallbacks are in use)
+1. **configuration**
+  * Gathers the I18n configuration from your framework settings.
+  * Gathers the I18n configuration from `locale.yml` (or bundled settings if file is missing).
+  * Gathers the I18n configuration from the configuration block.
 
-(If you really, really want to re-initialize things after everything was loaded and configured use `I18n.init.reset!`)
+2. **initialization** (invoked by `I18n.init!`)
+  * Loads settings from configuration sources.
+  * Sets up backends, available locales, default locale, locale names and fallbacks (if in use).
+  * Loads translations using the default translations directory of your framework
+    or the given directory.
 
 ### Available locales ###
 
 Available locales are the locales that your application supports. I18n Init allows you to add or remove them
-and then use in your views and controllers, for example, to present a list of languages that your site supports.
+and assign the language names to them. You can use these names to present a list of languages that user can
+choose from.
 
-The available locales are internally used when generating fallbacks. These are automatically created only for
+
+
+
+The available locales are also internally used when generating fallbacks. These are automatically created only for
 available locales. However, all the translations are loaded and can be used, regardless of available locales.
 You can configure fallbacks on your own for locales that aren't officially available but somehow
 are in use and need fallbacks. I18n Init won't destroy fallbacks that you've set manually, it just add new or redefine
 existing.
 
+Installation
+------------
+
+### Rails ###
+
+0. Add `i18n-init` to the `Gemfile` and execute: `bundle install`.
+1. Go to your application root directory and execure: `rails g i18n_init:install`
+2. View and customize the contents of:
+  * `config/locale.yml`
+  * `config/initializers/locale.rb` (not needed in most cases)
+
+### Other frameworks and programs ###
+
+0. Install I18n Init:
+  * manually: `gem install i18n-init`
+  * or add it to the `Gemfile` and execute: `bundle install`.
+1. Create the locale settings file called `locale.yml` and place it in the configuration directory of your application.
+  * to copy the example file: `ruby -r i18n-init -e I18n.init.print_example_settings > locale.yml`
+2. Create initializer in your application:
+  * create a configuration block in the initializer (optional)
+  * put **`I18n.init!`** after a block (mandatory).
+
 Usage
 -----
-
-1. Create the **locale settings file** called `locale.yml` and place it in the configuration directory of your web application (`config` in Rails) or your program.
-
-2. Create initializer in your web application (`config/initializers/locale.rb` in Rails)
-or in your program and put **`I18n.init!`** call there.
-
-3. Optionally **create a configuration block** in the initializer above. Place it **before** `I18n.init!`.
-
-In case of Rails 3 or higher you can use a generator which is shipped with this gem.
-Just type **`rails g i18n-init`** to get the default files (initializer and configuration file).
 
 ### Configuration file ###
 
@@ -88,31 +99,59 @@ The `locale.yml` configuration file contains basic I18n settings. Its contents m
 default: "en"
 
 available:
-  de: "Deutsch"
-  en: "English"
-  pl: "polski"
+  - de
+  - en
+  - pl
 
 fallbacks:
   en-shaw:
     - :en
     - :en-GB
     - :en-US
+
+default_fallbacks:
+  - :en
+
+names:
+  de: "Deutsch"
+  en: "English"
+  pl: "polski"
+
 rtl:
   - :ar
-  - :he
-  - :ur
   - :ms
 ```
 
+To view the example settings file, execute:
+`ruby -r i18n-init -e I18n.init.print_example_settings`
+
 It has the following sections:
 
-* `available` – languages (with their names) that your application supports
-* `fallbacks` – fallbacks that are used when a translation is missing in primary language
-* `rtl` – right-to-left languages
+* <b>`default`</b>           – default locale code (initializes `I18n.default_locale`)
+* <b>`initial`</b>           – initial locale code (initializes `I18n.locale`)
+* <b>`backends`</b>          – backends to enable (impacts `I18n.backend`)
+* <b>`available`</b>         – locales that your application can handle (initializes `I18n.available_locales`)
+* <b>`fallbacks`</b>         – fallbacks that are used (initializes `I18n.fallbacks`)
+* <b>`default_fallbacks`</b> – (initializes `I18n.fallbacks.defaults`)
+* <b>`rtl`</b>               – right-to-left languages (initializes `I18n.rtl_locales`)
+* <b>`names`</b>             – language names assigned to locales
 
-The `default` entry (present at the top of the example) should contain default locale code.
-When `I18n.init!` is called, it is used to initialize its `default_locale`.
-It will also be automatically added to all fallbacks as the last language.
+Available locales section (`available`) can also contain associations. If it's done that way, the given
+language names will override certain mappings from `names` section. Of course, the primary function of `available`
+section won't change – the given locales will be added to available locales list. Example:
+
+```yaml
+default: "en"
+
+available:
+  pl: 'polski'  # name overridden
+  de: ''        # name taken from 'names' or from bundled config
+  en:           # name taken from 'names' or from bundled config
+```
+
+How can it be helpful? When you don't want to maintain `names` but have to assign language names to locales on your own. 
+Then just remove the `names` section from your `locale.yml` file and assign new names in `available` section. Don't
+worry, any missing language name will be resolved using bundled configuration.
 
 ### Configuration block ###
 
@@ -178,7 +217,6 @@ Below are the keywords you may use to set things up.
 
 ### Querying ###
 
-
 See also
 --------
 
@@ -203,26 +241,6 @@ Download
 
 * https://rubygems.org/gems/i18n-init
 
-Installation
-------------
-
-```ruby
-gem install i18n-init
-```
-
-Rails integration
------------------
-
-If you are using Rails then in your application directory:
-
-```ruby
-rails g i18n_init:install
-```
-
-After that customize contents of:
-
-  * `config/locale.yml`
-  * `config/initializers/locale.rb` (editing not needed in most cases)
 
 Specs
 -----

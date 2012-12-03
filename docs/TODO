@@ -13,7 +13,7 @@
   - filter                  - ok, --
 
 - finish README (note about all options, note about overriding, note about what variables contain)
-- rtl_languages - multiple args  
+- rtl_languages - multiple args (see how available is done)  and add support to I18n
 - add generator
 - allow delayed auto-initialization (other railtie hook executed at the very end)
 - add example controller method / add some helper for a controller method to I18n
