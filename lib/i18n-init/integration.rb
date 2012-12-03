@@ -43,7 +43,7 @@ module I18n
     # 
     # @return [Init] settings object
     def init(&block)
-      block_given? ? Init.instance.config(&block) : Init.instance  
+      block_given? ? Init.instance.config(&block) : Init.instance
     end
 
     # Returns +true+ if locale is included in available locales.

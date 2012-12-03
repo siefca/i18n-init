@@ -156,17 +156,28 @@ class I18n::Init
     # 
     # @return [String] list of fallbacks.
     def list_fallbacks
+      return "- (disabled)" unless defined?(I18n.fallbacks)
       lj = fallbacks.keys.max_by(&:length).length
       fallbacks.keys.sort.each_with_object([]) do |f,o|
         o << "- #{f.to_s.ljust(lj)} -> #{I18n.fallbacks[f].join(' -> ')}"
       end.join(",\n  ")
     end
 
+    # Gets a list of fallbacks.
+    def fallbacks_list(lang = nil)
+      defined?(I18n.fallbacks) ? I18n.fallbacks[lang].join(" -> ") : "(disabled)"
+    end
+
+    # Gets a list of default fallbacks.
+    def default_fallbacks_list
+      defined?(I18n.fallbacks) ? I18n.fallbacks.defaults.join(' -> ') : "(disabled)"
+    end
+
     private
 
     # Read fallbacks from a configuration file.
     def fallbacks_from_file
-      @fallbacks_from_file ||= normalize_fallbacks(settings['fallbacks'] || {})
+      @fallbacks_from_file ||= normalize_fallbacks(settings['fallbacks'] || {}).tap { caches_dirty! }
     end
 
     # Read default fallbacks from a configuration file.
@@ -205,6 +216,7 @@ class I18n::Init
       @fallbacks_merged =
         (source.present? ? source.merge(@fallbacks_merged) : @fallbacks_merged).tap do |r|
           p_debug "   - from #{title} (sourced #{r.count - @fallbacks_merged.count} entries)"
+          caches_dirty!
         end
     end
 
@@ -256,7 +268,7 @@ class I18n::Init
     end
 
     # Gathers framework configuration for later use.
-    def gather_framework_info
+    def framework_conf
       case framework
       when :Rails
         if Rails.configuration.respond_to?(:i18n)

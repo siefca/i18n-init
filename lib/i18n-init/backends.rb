@@ -34,12 +34,14 @@ class I18n::Init
     # 
     # @return [nil]
     def load!(cfile = nil)
-      p_debug "loading backends [#{@backends.keys.map{|n|n.capitalize}.join(', ')}]"
       @backends = backends_merged
-      @backends.each_pair do |b_name, b_module|
-        unless I18n.backend.class.included_modules.include?(b_module)
-          require "i18n/backend/#{b_name}" rescue nil
-          I18n.backend.class.send(:include, b_module)
+        if @backends.present?
+        p_debug "loading backends [#{@backends.keys.map{|n|n.capitalize}.join(', ')}]"
+        @backends.each_pair do |b_name, b_module|
+          unless I18n.backend.class.included_modules.include?(b_module)
+            require "i18n/backend/#{b_name}" rescue nil
+            I18n.backend.class.send(:include, b_module)
+          end
         end
       end
       super if defined?(super)
@@ -48,7 +50,10 @@ class I18n::Init
     private
 
     def backends_merged
-      @backends_merged ||= backends_from_file.merge(@backends).tap { p_debug "merging backends" }
+      @backends_merged ||= backends_from_file.merge(@backends).tap do
+        p_debug "merging backends"
+        caches_dirty!
+      end
     end
 
     def backends_from_file
@@ -56,7 +61,7 @@ class I18n::Init
         b_name = b_name.to_s
         b_name = b_name[0].upcase + b_name[1..-1]
         o[b_name] = I18n::Backend.const_get(b_name)
-      end
+      end.tap { caches_dirty! }
     end
 
     # Resets buffers.
@@ -70,6 +75,16 @@ class I18n::Init
       @backends_merged = nil
       @backends_from_file = nil
       super if defined?(super)
+    end
+
+    # Gets a list of backend modules.
+    def backend_modules_list
+      I18n.backend.class.included_modules.
+        map     { |m| m.to_s                                }.
+        select  { |m| m[0..12] == "I18n::Backend"           }.
+        map     { |m| m.split(':').last                     }.
+        reject  { |m| ['Base','Implementation'].include?(m) }.
+        join(', ')
     end
 
   end # module Backends

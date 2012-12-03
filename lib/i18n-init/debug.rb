@@ -13,11 +13,11 @@ class I18n::Init
 
     configuration_methods :p_debug, :p_debug_once
 
-    # Initializes I18n Init.
+    # Prepares I18n Init.
     # 
     # @return [nil]
-    def load!(cfile = nil)
-      debug! if environment == 'development' && ENV['I18N_DEBUG']
+    def prepare!(cfile = nil)
+      debug! if ENV['I18N_DEBUG']
       super if defined?(super)
     end
 
@@ -82,4 +82,4 @@ class I18n::Init
     end
 
   end # module Debug
-end # class I18N::Init
+end # class I18n::Init

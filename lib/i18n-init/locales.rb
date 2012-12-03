@@ -199,6 +199,7 @@ class I18n::Init
 
     def merge_available_locales(src, title)
       p_debug " - merging available locales from #{title}"
+      caches_dirty!
       @merged_available_languages = normalize_available_locales(src).merge(@merged_available_languages)
     end
 
@@ -285,7 +286,7 @@ class I18n::Init
     end
 
     # Gathers framework configuration for later use.
-    def gather_framework_info
+    def framework_conf
       case framework
       when :Rails
         if Rails.configuration.respond_to?(:i18n)

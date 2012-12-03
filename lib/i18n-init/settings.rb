@@ -31,6 +31,7 @@ class I18n::Init
           p_debug "switching to environment section: #{environment}"
           break s[environment]
         end
+        caches_dirty!
       end || {}
     end
 
@@ -43,7 +44,7 @@ class I18n::Init
         return {}
       end
       return @settings_bundled unless @settings_bundled.blank?
-      @settings_bundled = yaml_load(bundled_settings_file)
+      @settings_bundled = yaml_load(bundled_settings_file).tap { caches_dirty! }
     end
 
     # Gets memorized I18n settings obtained from framework configuration.
@@ -54,7 +55,7 @@ class I18n::Init
         p_debug_once "ignoring framework settings"
         return {}
       end
-      @framework_conf ||= {}
+      framework_conf
     end
 
     # Sets a flag that if +true+ causes settings file to be ignored.
@@ -186,6 +187,15 @@ class I18n::Init
       File.open(fname).tap { |f| return YAML::load(f).tap{ f.close } || {} }
     end
 
+    # Memorizes framework-related configuration in early stage of initialization.
+    def framework_conf
+      return @framework_conf if @framework_conf
+      p_debug "gathering framework info"
+      @framework_conf = {}
+      super if defined?(super)
+      @framework_conf
+    end
+
     # Invalidates cached settings based on configuration file contents.
     def invalidate_caches
       @settings = nil
@@ -198,8 +208,30 @@ class I18n::Init
       @ignore_settings_file       = false
       @ignore_bundled_settings    = false
       @ignore_framework_settings  = false
-      @framework_conf             = {}
+      @framework_conf             = nil
       super if defined?(super)
+    end
+
+    # Gets some info about settings used.
+    def settings_info
+      [].tap do |r|
+        unless ignore_framework_settings? || framework == :unknown
+          r << "#{framework} configuration#{' (empty)' if settings_framework.blank?}"
+        end
+        unless ignore_settings_file? || config_file.blank?
+          rr = ""
+          rr << config_file.basename.to_s
+          if settings.blank?
+            rr << " (empty)"
+          elsif settings['i18n-init-bundled']
+            rr << " (bundled)"
+          end
+          r << rr
+        end
+        if configuration_block_used?
+          r << "configuration block"
+        end
+      end.join(', ')
     end
 
   end # module Settings

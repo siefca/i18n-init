@@ -45,12 +45,13 @@ class I18n::Init
             end
           end
         end
+        caches_dirty!
       end
     end
 
     # Returns reverse resolver.
     def resolver_rev
-      @resolver_cache_rev ||= @resolver_cache.invert
+      @resolver_cache_rev ||= resolver.invert
     end
 
     # Resets internal caches.
