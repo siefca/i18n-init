@@ -7,19 +7,21 @@ default: "en"
 initial: "en"
 
 # List of locales that your site or application can handle and may present as "supported".
+# 
+# Alternatively the locale -> language pairs may be added instead of a list.
+# They will override language names present in 'names' section. Example:
+# 
+#   available:
+#     de: "Deutsch"
+#     en: "English"
+#     pl: "polski"
+#     fr: ""        # will be taken from 'names' section or from bundled configuration
+# 
 available:
   - :de
   - :en
   - :fr
   - :pl
-
-# (Alternatively the locale -> language pairs may be added instead of a list.
-# They will override language names present in 'names' section.)
-# 
-# available:
-#   de: "Deutsch"
-#   en: "English"
-#   pl: "polski"
 
 # Default fallbacks list.
 # (Taken from 'default' if not set.)
@@ -33,41 +35,41 @@ backends:
 
 # Individual fallbacks.
 fallbacks:
-    en-GB:
-      - :en
-    en-US:
-      - :en
-    en_shaw:
-      - :en
-      - :en-GB
-      - :en-US
-    en_pirate:
-      - :en
-      - :en-GB
-      - :en-US
-    en_1337:
-      - :en
-      - :en-GB
-      - :en-US
-    sv:
-      - :sv-SE
-    he:
-      - :he-IL
-    es-AR:
-      - :es
-    es-CL:
-      - :es
-    es-MX:
-      - :es
-    gl:
-      - :gl-ES
-    zh:
-      - :zh-CN
-      - :zh-TW
-    ur-PK:
-      - :ur
-    de_formal:
-      - :de
+  en-GB:
+    - :en
+  en-US:
+    - :en
+  en_shaw:
+    - :en
+    - :en-GB
+    - :en-US
+  en_pirate:
+    - :en
+    - :en-GB
+    - :en-US
+  en_1337:
+    - :en
+    - :en-GB
+    - :en-US
+  sv:
+    - :sv-SE
+  he:
+    - :he-IL
+  es-AR:
+    - :es
+  es-CL:
+    - :es
+  es-MX:
+    - :es
+  gl:
+    - :gl-ES
+  zh:
+    - :zh-CN
+    - :zh-TW
+  ur-PK:
+    - :ur
+  de_formal:
+    - :de
 
 # Locale codes to language names mapping.
 names:
