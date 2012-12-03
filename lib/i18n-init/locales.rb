@@ -17,7 +17,7 @@ class I18n::Init
     configuration_methods :locale=, :locale, :available_locale, :available_locales, :available_locales=,
                           :available_locale=, :available_locale_codes, :delete_language, :delete_locale,
                           :default_locale, :default_locale=, :default_language, :language_name,
-                          :rtl_languages, :rtl_languages=
+                          :rtl_locales, :rtl_locales=
 
     # @override default_locale
     #   Gets the default locale.
@@ -133,13 +133,13 @@ class I18n::Init
     end
     alias_method :available_locales=, :available_locale=
 
-    def rtl_languages=(languages)
-      @rtl_languages = Array(languages)
+    def rtl_locales=(locales)
+      @rtl_locales = Array(locales)
     end
 
-    def rtl_languages(languages = nil)
-      return (self.rtl_languages = languages) unless languages.nil?
-      @rtl_languages
+    def rtl_locales(locales = nil)
+      return (self.rtl_locales = locales) unless locales.nil?
+      @rtl_locales
     end
 
     # Gets the array containing strings of available locale codes.
@@ -179,6 +179,7 @@ class I18n::Init
     # @return []
     def list_available_locales(internal = true)
       src = internal ? available_locales : I18n.available_locales
+      return "- (none)" if src.blank?
       lj = src.max_by(&:length).length
       src.sort.each_with_object([]) do |c,o|
         o << "- #{c.to_s.ljust(lj)} (#{resolve_code(c)})"
@@ -207,7 +208,7 @@ class I18n::Init
     def setup_available_locales
       p_debug "setting up available locales"
       from_framework  = settings_framework[:available_locales] || []
-      from_file       = settings['available'] || []
+      from_file       = (settings['i18n-init-bundled'] ? settings['names'] : settings['available']) || []
       merge_available_locales(from_framework, "framework")
       merge_available_locales(from_file, "settings file")
       merge_available_locales(available_languages, "block")
@@ -223,7 +224,7 @@ class I18n::Init
     def setup_rtl_locale
       p_debug "setting up RTL locales"
       if settings['rtl'].present?
-        @rtl_languages.concat(settings['rtl']).uniq!
+        @rtl_locales.concat(settings['rtl']).uniq!
       end
       nil
     end
@@ -273,7 +274,7 @@ class I18n::Init
     def reset_buffers
       @available_languages  = {}
       @available_filter     = []
-      @rtl_languages        = []
+      @rtl_locales          = []
       @locale               = nil
       @default_locale_code  = nil
       @default_locale_name  = nil

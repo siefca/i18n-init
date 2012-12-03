@@ -11,7 +11,7 @@ module I18n
 
   extend Module.new {
     # Define methods that delegate to init object.
-    %w(init! debug! initialized? rtl_languages print_info info).each do |method|
+    %w(init! debug! initialized? rtl_locales print_info info).each do |method|
       module_eval <<-DELEGATORS, __FILE__, __LINE__ + 1
         def #{method}
           init.#{method}
