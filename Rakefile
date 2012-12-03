@@ -86,4 +86,3 @@ task :gemsign do
            -ab pkg/#{I18n::Init::NAME}-#{I18n::Init::VERSION}.gem \
             -o pkg/#{I18n::Init::NAME}-#{I18n::Init::VERSION}.gem.sig}
 end
-
